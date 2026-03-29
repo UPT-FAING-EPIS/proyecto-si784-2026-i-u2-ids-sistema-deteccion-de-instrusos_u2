@@ -80,6 +80,8 @@ Desarrollo de un sistema básico de detección de intrusos (IDS) para monitoreo 
 
     1.2. Duración del proyecto
 
+El proyecto tiene una duracion de 4 semanas (1 mes)
+
     1.3. Descripción
 
 En la actualidad, el uso de redes informáticas se ha incrementado significativamente en entornos académicos, empresariales y personales, lo que ha generado también un aumento en las amenazas de seguridad informática, como accesos no autorizados, ataques de denegación de servicio y escaneo de puertos.
