@@ -392,29 +392,30 @@ Se tiene que estimar financieramente el resultado del proyecto.
 
     5.1. Justificación de la Inversión
 
+Dado que el sistema IDS es una herramienta open-source de uso académico, el retorno de la inversión no se mide en ingresos económicos directos, sino en beneficios tangibles e intangibles para los usuarios y la institución.
+
         5.1.1. Beneficios del Proyecto
 
-El beneficio se calcula como el margen económico menos los costes de oportunidad, que son los márgenes que hubieran podido obtenerse de haber dedicado el capital y el esfuerzo a otras actividades.
-El beneficio, obtenido lícitamente, no es sólo una recompensa a la inversión, al esfuerzo y al riesgo asumidos por el empresario, sino que también es un factor esencial para que las empresas sigan en el  mercado e incorporen nuevas inversiones al tejido industrial y social de las naciones.
-Describir beneficios tangibles e intangibles*
-Beneficios tangibles: son de fácil cuantificación, generalmente están relacionados con la reducción de recursos o talento humano.
-Beneficios intangibles: no son fácilmente cuantificables y están relacionados con elementos o mejora en otros procesos de la organización.
->
-            Ejemplo de beneficios:
+| Beneficio | Estimación |
+|----------|-----------|
+| Reducción del tiempo de monitoreo manual de red | De varias horas a monitoreo automático en tiempo real |
+| Detección automática de actividades sospechosas | Cobertura continua vs. 0% sin sistema IDS |
+| Eliminación de costos de herramientas comerciales de seguridad | Ahorro de USD 20–50/mes por usuario |
+| Implementación sin necesidad de hardware adicional | Uso de equipos existentes |
+| Prevención de incidentes de seguridad | Reducción de riesgos de pérdida de información |
 
-            - Mejoras en la eficiencia del área bajo estudio.
-            - Reducción de personal.
-            - Reducción de futuras inversiones y costos.
-            - Disponibilidad del recurso humano.
-            - Mejoras en planeación, control y uso de recursos.
-            - Suministro oportuno de insumos para las operaciones.
-            - Cumplimiento de requerimientos gubernamentales.
-            - Toma acertada de decisiones.
-            - Disponibilidad de información apropiada.
-            - Aumento en la confiabilidad de la información.
-            - Mejor servicio al cliente externo e interno
-            - Logro de ventajas competitivas.
-            - Valor agregado a un producto de la compañía.
+
+### Beneficios Intangibles
+- Mejora de la cultura de seguridad informática en entornos académicos  
+- Desarrollo de habilidades en redes y ciberseguridad  
+- Aplicación práctica de conocimientos teóricos  
+- Contribución académica de la Universidad  
+- Disponibilidad de una herramienta open-source accesible  
+- Fortalecimiento del perfil profesional de los desarrolladores  
+- Publicación del proyecto en GitHub como evidencia técnica  
+
+
+
         
         5.1.2. Criterios de Inversión
 
