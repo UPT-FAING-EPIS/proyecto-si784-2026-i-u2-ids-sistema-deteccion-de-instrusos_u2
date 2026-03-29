@@ -92,7 +92,16 @@ Por lo tanto, surge la necesidad de diseñar e implementar un sistema básico de
     1.4. Objetivos
 
         1.4.1 Objetivo general
+
+Desarrollar un sistema básico de detección de intrusos (IDS) capaz de monitorear el tráfico de red y generar alertas ante posibles actividades sospechosas.
+
         1.4.2 Objetivos Específicos
+-Capturar paquetes de red en tiempo real
+-Analizar el tráfico mediante reglas predefinidas
+-Detectar comportamientos anómalos
+-Generar alertas ante posibles intrusiones
+-Evaluar el funcionamiento mediante pruebas de software
+            
             Para cada objetivo específico se indicara que se va a lograr
 
 <div style="page-break-after: always; visibility: hidden">\pagebreak</div>
