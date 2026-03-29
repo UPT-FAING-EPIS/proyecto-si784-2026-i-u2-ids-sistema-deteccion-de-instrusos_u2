@@ -128,11 +128,7 @@ El tiempo asignado para el desarrollo puede no ser suficiente para implementar t
 La falta de equipos adecuados o acceso restringido a redes reales puede dificultar las pruebas del sistema en escenarios reales.
 
 
-2.5 Riesgo de implementación técnica
 
-Existe el riesgo de dificultades en la integración de librerías de captura de paquetes como pcap4j en Java, lo cual podría afectar tareas como:
-- [BACK-04] Captura de paquetes
-- [BACK-05] Parser de paquetes
 
 
 
@@ -188,12 +184,14 @@ Realizar una evaluación de la tecnología actual existente y la posibilidad de 
 Describir acerca del hardware (equipos, servidor), software (aplicaciones, navegadores, sistemas operativos, dominio, internet, infraestructura de red física, etc.
 
 El sistema será desarrollado utilizando tecnologías accesibles como:
-Lenguaje: Java
-Librería de red: pcap4j
-Gestión del desarrollo: GitHub Issues
+- Lenguaje: Python 3
+- Librería de red: Scapy
+- IDE: Visual Studio Code
+- Gestión del desarrollo: GitHub Issues
 
-El desarrollo se organizará mediante tareas técnicas (Issues), permitiendo una implementación progresiva del sistema IDS.
+El uso de Python permite una implementación rápida y eficiente del sistema IDS, facilitando la captura y análisis de paquetes de red en tiempo real.
 
+El entorno Visual Studio Code permite una integración eficiente con Python, facilitando la depuración, ejecución y organización del proyecto.
 
     4.2.Factibilidad Económica
 
@@ -284,7 +282,64 @@ Verificación del correcto funcionamiento
 
     4.4.Factibilidad Legal
 
-Determinar si existe conflicto del proyecto con restricciones legales como leyes y regulaciones del país o locales relacionadas con seguridad, protección de datos, conducta de negocio, empleo y adquisiciones.
+**Licencias de software**
+
+El sistema IDS será desarrollado utilizando tecnologías de código abierto, principalmente el lenguaje de programación Python y librerías como Scapy, las cuales cuentan con licencias permisivas compatibles con el uso académico y la distribución open-source.
+
+Asimismo, se emplearán herramientas como Visual Studio Code, Git y GitHub, que permiten el desarrollo y gestión del proyecto sin restricciones legales.
+
+No existe conflicto de licencias para la publicación del proyecto bajo licencias abiertas como MIT o Apache 2.0, ya que todas las tecnologías utilizadas permiten su libre uso, modificación y distribución.
+
+---
+
+**Protección de datos**
+
+El sistema IDS operará en un entorno local o red controlada, realizando el monitoreo del tráfico de red en tiempo real.
+
+No se almacenarán datos personales sensibles ni se transmitirá información confidencial a servidores externos. El análisis se limita a información técnica como:
+
+- Direcciones IP  
+- Puertos  
+- Protocolos de red  
+
+Estos datos serán utilizados únicamente con fines académicos y de detección de intrusiones.
+
+Además, el sistema será implementado en un entorno de prueba, evitando afectar redes reales o información privada.
+
+---
+
+**Uso del sistema y ética**
+
+El sistema IDS será utilizado exclusivamente con fines académicos dentro de un entorno controlado.
+
+No se empleará para actividades maliciosas ni para la interceptación indebida de comunicaciones. Su finalidad es:
+
+- Monitorear el tráfico de red  
+- Detectar posibles amenazas  
+- Apoyar el aprendizaje en seguridad informática  
+
+El uso del sistema se realizará respetando principios éticos y normas de uso responsable de la tecnología.
+
+---
+
+**Propiedad intelectual**
+
+El software desarrollado constituye una contribución académica original elaborada por los estudiantes.
+
+No se incorporará código propietario ni herramientas comerciales restringidas. El sistema será desarrollado utilizando tecnologías open-source permitidas.
+
+---
+
+**Evaluación**
+
+No existen impedimentos legales para el desarrollo, implementación ni uso del sistema IDS en el contexto académico.
+
+**La factibilidad legal del proyecto es ALTA**, debido a:
+
+- Uso de tecnologías open-source  
+- Operación en entorno controlado  
+- Respeto de principios éticos  
+- Ausencia de conflictos de licencias  
 
     4.5.Factibilidad Social 
 
