@@ -166,7 +166,7 @@ Ante esta problemática, surge la necesidad de desarrollar un sistema básico de
 | Flask (opcional)       | Framework web        | Interfaz de visualización |
 | Git                    | Control de versiones | Gestión del código fuente |
 
-<div style="page-break-after: always; visibility: hidden">\pagebreak</div>
+
 
 4. <span id="_Toc52661349" class="anchor"></span>**Estudio de
     Factibilidad**
