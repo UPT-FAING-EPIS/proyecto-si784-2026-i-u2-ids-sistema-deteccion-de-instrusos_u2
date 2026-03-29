@@ -75,7 +75,7 @@ Versión *{1.0}*
 
     1.1. Nombre del proyecto
    
-       Desarrollo de un sistema básico de detección de intrusos (IDS) para monitoreo de tráfico de red
+Desarrollo de un sistema básico de detección de intrusos (IDS) para monitoreo de tráfico de red
 
     1.2. Duración del proyecto
 
@@ -96,10 +96,15 @@ Por lo tanto, surge la necesidad de diseñar e implementar un sistema básico de
 Desarrollar un sistema básico de detección de intrusos (IDS) capaz de monitorear el tráfico de red y generar alertas ante posibles actividades sospechosas.
 
         1.4.2 Objetivos Específicos
+        
 -Capturar paquetes de red en tiempo real
+
 -Analizar el tráfico mediante reglas predefinidas
+
 -Detectar comportamientos anómalos
+
 -Generar alertas ante posibles intrusiones
+
 -Evaluar el funcionamiento mediante pruebas de software
             
             Para cada objetivo específico se indicara que se va a lograr
@@ -108,7 +113,9 @@ Desarrollar un sistema básico de detección de intrusos (IDS) capaz de monitore
 
 2. <span id="_Toc52661347" class="anchor"></span>**Riesgos**
 
-    Señale los riesgos que pudieran afectar el éxito del proyecto.}*
+2.1. Limitaciones técnicas
+
+El sistema puede presentar dificultades para capturar y analizar correctamente el tráfico de red en tiempo real, especialmente si no se cuenta con experiencia previa en herramientas como Python o librerías de redes.
 
 <div style="page-break-after: always; visibility: hidden">\pagebreak</div>
 
