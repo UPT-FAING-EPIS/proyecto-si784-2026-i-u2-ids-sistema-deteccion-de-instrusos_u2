@@ -419,20 +419,57 @@ Dado que el sistema IDS es una herramienta open-source de uso académico, el ret
         
         5.1.2. Criterios de Inversión
 
+Dado el carácter académico del proyecto, el análisis financiero se basa en el ahorro generado frente al uso de herramientas comerciales de seguridad.
+Se considera un escenario de referencia con 2 usuarios que podrían utilizar herramientas equivalentes de pago.
+
+---
+
+### Parámetros del análisis
+
+| Parámetro | Valor |
+|----------|------|
+| Inversión total del proyecto | S/. 2025.00 |
+| Ahorro mensual estimado (2 usuarios × S/. 120) | S/. 240.00 |
+| Tasa de descuento mensual (12% anual) | 1% |
+| Horizonte de evaluación | 12 meses |
+
             5.1.2.1. Relación Beneficio/Costo (B/C)
 
-                En base a los costos y beneficios identificados se evalúa si es factible el desarrollo del proyecto. 
-                Si se presentan varias alternativas de solución se evaluará cada una de ellas para determinar la mejor solución desde el punto de vista del > retorno de la inversión
-                El B/C si es mayor a uno, se acepta el proyecto; si el B/C es igual a uno es indiferente aceptar o rechazar el proyecto y si el B/C es menor a uno se rechaza el proyecto
+Beneficio total en 12 meses:
+
+            S/. 240 × 12 = S/. 2880.00  
+            
+            B/C = Beneficios / Costo  
+            B/C = 2880 / 2025  
+            B/C = **1.42**
+
+Como **B/C > 1**, el proyecto es viable.
 
             5.1.2.2. Valor Actual Neto (VAN)
             
-                Valor actual de los beneficios netos que genera el proyecto. Si el VAN es mayor que cero, se acepta el proyecto; si el VAN es igual a cero es indiferente aceptar o rechazar el proyecto y si el VAN es menor que cero se rechaza el proyecto
+            VAN = -2025 + Σ [240 / (1 + 0.01)^t] para t = 1..12  
+            
+            VAN ≈ -2025 + 240 × 11.25  
+            VAN ≈ -2025 + 2700  
+            VAN ≈ **S/. 675.00**
+
+Como **VAN > 0**, el proyecto se acepta.
+
 
             5.1.2.3 Tasa Interna de Retorno (TIR)*
-                Es la tasa porcentual que indica la rentabilidad promedio anual que genera el capital invertido en el proyecto. Si la TIR es mayor que el costo de oportunidad se acepta el proyecto, si la TIR es igual al costo de oportunidad es indiferente aceptar o rechazar el proyecto, si la TIR es menor que el costo de oportunidad se rechaza el proyecto
 
-                Costo de oportunidad de capital (COK) es la tasa de interés que podría haber obtenido con el dinero invertido en el proyecto
+Debido a que la inversión es relativamente baja frente a los beneficios estimados, la TIR es positiva y superior al costo de oportunidad del capital.
+
+Sin embargo, al tratarse de un proyecto académico, se prioriza la evaluación mediante B/C y VAN.
+
+
+### Resumen del análisis financiero
+
+| Indicador | Resultado | Decisión |
+|----------|----------|----------|
+| Relación B/C | 1.42 | Aceptado |
+| VAN | S/. 675.00 | Aceptado |
+| TIR | Positiva | Referencial |
 
 <div style="page-break-after: always; visibility: hidden">\pagebreak</div>
 
