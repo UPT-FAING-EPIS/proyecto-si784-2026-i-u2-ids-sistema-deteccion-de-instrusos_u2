@@ -339,7 +339,9 @@ No existen impedimentos legales para el desarrollo, implementación ni uso del s
 - Uso de tecnologías open-source  
 - Operación en entorno controlado  
 - Respeto de principios éticos  
-- Ausencia de conflictos de licencias  
+- Ausencia de conflictos de licencias
+
+---
 
     4.5.Factibilidad Social 
 
