@@ -18,7 +18,8 @@ Docente: *MAG.PATRICK CUADROS QUIROGA*
 
 Integrantes:
 
-***{Apellidos y nombres del estudiante (código universitario)}***
+***Edgar Diego Chara apaza             (2019065026)***
+***Abel Fernando Pacompía Ortiz        (2023076797)***
 
 **Tacna – Perú**
 
