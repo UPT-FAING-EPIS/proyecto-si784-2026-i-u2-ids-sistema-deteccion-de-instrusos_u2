@@ -168,23 +168,23 @@ El sistema incluirá funcionalidades como:
         1.3	Definiciones, Siglas y Abreviaturas
 
         1.3.1. Definiciones
-        -Intrusión: Acceso no autorizado a un sistema o red informática con fines maliciosos o indebidos.
-        -Tráfico de red: Conjunto de datos que circulan a través de una red de computadoras.
-        -Paquete de red: Unidad básica de datos que se transmite a través de una red.
-        -Reglas de detección: Conjunto de condiciones utilizadas para identificar comportamientos sospechosos en el tráfico de red.
-        -Alerta: Notificación generada por el sistema cuando se detecta una posible amenaza o actividad inusual.
-        -Escaneo de puertos: Técnica utilizada para identificar puertos abiertos en un sistema, comúnmente empleada en ataques informáticos.
-        -Monitoreo: Proceso de observación continua del tráfico de red para detectar anomalías.
+  -Intrusión: Acceso no autorizado a un sistema o red informática con fines maliciosos o indebidos.
+  -Tráfico de red: Conjunto de datos que circulan a través de una red de computadoras.
+  -Paquete de red: Unidad básica de datos que se transmite a través de una red.
+  -Reglas de detección: Conjunto de condiciones utilizadas para identificar comportamientos sospechosos en el tráfico de red.
+  -Alerta: Notificación generada por el sistema cuando se detecta una posible amenaza o actividad inusual.
+  -Escaneo de puertos: Técnica utilizada para identificar puertos abiertos en un sistema, comúnmente empleada en ataques informáticos.
+  -Monitoreo: Proceso de observación continua del tráfico de red para detectar anomalías.
 
         1.3.2. Siglas y Abreviaturas
-        -IDS (Intrusion Detection System): Sistema de detección de intrusos.
-        -IP (Internet Protocol): Protocolo que permite la identificación de dispositivos en una red.
-        -TCP (Transmission Control Protocol): Protocolo de comunicación orientado a conexión.
-        -UDP (User Datagram Protocol): Protocolo de comunicación sin conexión.
-        -LAN (Local Area Network): Red de área local.
-        -DoS (Denial of Service): Ataque de denegación de servicio.
-        -Scapy: Librería de Python utilizada para la captura y análisis de paquetes de red.
-        -Socket: Interfaz para la comunicación entre procesos a través de una red.
+  -IDS (Intrusion Detection System): Sistema de detección de intrusos.
+  -IP (Internet Protocol): Protocolo que permite la identificación de dispositivos en una red.
+  -TCP (Transmission Control Protocol): Protocolo de comunicación orientado a conexión.
+  -UDP (User Datagram Protocol): Protocolo de comunicación sin conexión.
+  -LAN (Local Area Network): Red de área local.
+  -DoS (Denial of Service): Ataque de denegación de servicio.
+  -Scapy: Librería de Python utilizada para la captura y análisis de paquetes de red.
+  -Socket: Interfaz para la comunicación entre procesos a través de una red.
 
 
 
