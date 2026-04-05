@@ -342,8 +342,35 @@ El sistema será utilizado en un entorno académico controlado:
 
 <span id="_Toc52661357" class="anchor"></span>**BIBLIOGRAFIA**
 
+- Sommerville, I. (2011). *Ingeniería de software* (9ª ed.). Pearson Educación.
+
+- Stallings, W. (2017). *Seguridad informática: principios y práctica*. Pearson.
+
+- Kurose, J., & Ross, K. (2017). *Redes de computadoras: un enfoque descendente* (7ª ed.). Pearson.
+
+
 <div style="page-break-after: always; visibility: hidden">\pagebreak</div>
 
 <span id="_Toc52661358" class="anchor"></span>**WEBGRAFIA**
+- Python Software Foundation. (2026). *Python Documentation*.  
+  https://docs.python.org/3/
+
+- Scapy Project. (2026). *Scapy Documentation*.  
+  https://scapy.readthedocs.io/
+
+- OWASP Foundation. (2026). *Open Web Application Security Project*.  
+  https://owasp.org/
+
+- Cisco Networking Academy. (2026). *Introducción a la Ciberseguridad*.  
+  https://www.netacad.com/
+
+- NIST. (2026). *Guide to Intrusion Detection and Prevention Systems*.  
+  https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-94.pdf
+
+- GeeksforGeeks. (2026). *Intrusion Detection System (IDS)*.  
+  https://www.geeksforgeeks.org/intrusion-detection-system-ids/
+
+- IBM Security. (2026). *What is an Intrusion Detection System (IDS)?*  
+  https://www.ibm.com/topics/intrusion-detection-system
 
 <div style="page-break-after: always; visibility: hidden">\pagebreak</div>
