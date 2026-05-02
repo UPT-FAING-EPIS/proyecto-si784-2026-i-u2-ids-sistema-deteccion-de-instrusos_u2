@@ -18,6 +18,7 @@ Versión PRO del proyecto académico IDS para monitoreo de tráfico de red.
 
 - Python 3.9 o superior
 - Permisos de administrador/root para capturar paquetes
+- Descarga de nmap (https://nmap.org/download.html#windows)
 
 ## Instalación
 
