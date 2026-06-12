@@ -397,6 +397,96 @@
             gap: 10px;
         }
 
+        .simulation-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 15px;
+            margin-bottom: 18px;
+        }
+
+        .simulation-item {
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 16px;
+            display: grid;
+            gap: 12px;
+            min-height: 190px;
+        }
+
+        .simulation-item h3 {
+            margin: 0;
+            color: #93c5fd;
+            font-size: 17px;
+        }
+
+        .simulation-item p {
+            margin: 0;
+            color: #d1d5db;
+            line-height: 1.45;
+        }
+
+        .simulation-item button {
+            align-self: end;
+            margin-bottom: 0;
+        }
+
+        .simulation-result {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            color: #cbd5e1;
+            min-height: 48px;
+            padding: 14px;
+        }
+
+        .simulation-result.success {
+            border-color: #16a34a;
+            color: #bbf7d0;
+        }
+
+        .simulation-result.error {
+            border-color: #ef4444;
+            color: #fecaca;
+        }
+
+        .command-box {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            color: #bfdbfe;
+            font-family: Consolas, monospace;
+            line-height: 1.5;
+            min-height: 46px;
+            overflow-wrap: anywhere;
+            padding: 12px;
+            white-space: pre-wrap;
+        }
+
+        .split-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .inline-form {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .inline-form input,
+        .inline-form select {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 6px;
+            color: #e5e7eb;
+            min-width: 220px;
+            padding: 10px;
+        }
+
         @media (max-width: 900px) {
             .app-layout {
                 grid-template-columns: 1fr;
@@ -415,7 +505,9 @@
             .status-grid,
             .chart-grid,
             .traffic-grid,
-            .filter-grid {
+            .filter-grid,
+            .simulation-grid,
+            .split-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -432,8 +524,11 @@
                 <button class="active" id="dashboardNav" onclick="showView('dashboard')">Dashboard</button>
                 <button id="trafficNav" onclick="showView('traffic')">Tipos de trafico</button>
                 <button id="classifiedNav" onclick="showView('classified')">Trafico clasificado</button>
+                <button id="networkNav" onclick="showView('network')">Red local</button>
                 <button id="statusNav" onclick="showView('status')">Estado IDS</button>
                 <button id="chartsNav" onclick="showView('charts')">Graficos</button>
+                <button id="simulatorNav" onclick="showView('simulator')">Simulador</button>
+                <button id="suricataNav" onclick="showView('suricata')">Suricata IPS</button>
                 <button id="historyNav" onclick="showView('history')">Historial</button>
                 <button id="rulesNav" onclick="showView('rules')">Reglas IDS</button>
             </nav>
@@ -475,14 +570,16 @@
                             <tr>
                                 <th>Fecha/Hora</th>
                                 <th>Riesgo</th>
+                                <th>Fuente</th>
                                 <th>Tipo</th>
                                 <th>IP Origen</th>
+                                <th>Objetivo</th>
                                 <th>Descripci&oacute;n</th>
                             </tr>
                         </thead>
                         <tbody id="alertsTable">
                             <tr>
-                                <td colspan="5" class="empty">Sin alertas registradas</td>
+                                <td colspan="7" class="empty">Sin alertas registradas</td>
                             </tr>
                         </tbody>
                     </table>
@@ -563,6 +660,57 @@
                         <tbody id="classifiedTrafficTable">
                             <tr>
                                 <td colspan="7" class="empty">Sin trafico clasificado</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </main>
+            </section>
+
+            <section class="view" id="networkView">
+                <header>
+                    <h2>Red local</h2>
+                    <p>Escaneo controlado de dispositivos activos dentro de tu subred.</p>
+                </header>
+
+                <main>
+                    <section class="cards">
+                        <div class="card">
+                            <h2>Dispositivos</h2>
+                            <p id="networkDeviceCount">0</p>
+                        </div>
+                        <div class="card">
+                            <h2>Red detectada</h2>
+                            <p id="networkRange">-</p>
+                        </div>
+                        <div class="card">
+                            <h2>Gateway</h2>
+                            <p id="networkGateway">-</p>
+                        </div>
+                        <div class="card">
+                            <h2>Interfaz</h2>
+                            <p id="networkInterface">-</p>
+                        </div>
+                    </section>
+
+                    <div class="actions">
+                        <button onclick="loadNetworkDevices()">Escanear red</button>
+                    </div>
+
+                    <div class="simulation-result" id="networkScanStatus">Presiona Escanear red para buscar equipos activos.</div>
+
+                    <table style="margin-top: 16px;">
+                        <thead>
+                            <tr>
+                                <th>IP</th>
+                                <th>MAC</th>
+                                <th>Nombre</th>
+                                <th>Rol</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody id="networkDevicesTable">
+                            <tr>
+                                <td colspan="5" class="empty">Sin escaneo realizado</td>
                             </tr>
                         </tbody>
                     </table>
@@ -698,14 +846,16 @@
                             <tr>
                                 <th>Fecha/Hora</th>
                                 <th>Riesgo</th>
+                                <th>Fuente</th>
                                 <th>Tipo</th>
                                 <th>IP Origen</th>
+                                <th>Objetivo</th>
                                 <th>Descripci&oacute;n</th>
                             </tr>
                         </thead>
                         <tbody id="historyTable">
                             <tr>
-                                <td colspan="5" class="empty">Sin alertas registradas</td>
+                                <td colspan="7" class="empty">Sin alertas registradas</td>
                             </tr>
                         </tbody>
                     </table>
@@ -717,6 +867,201 @@
                             <button class="secondary-button" onclick="nextHistoryPage()">Siguiente</button>
                         </div>
                     </div>
+                </main>
+            </section>
+
+            <section class="view" id="simulatorView">
+                <header>
+                    <h2>Simulador</h2>
+                    <p>Genera alertas de laboratorio para validar el dashboard y explicar las reglas IDS.</p>
+                </header>
+
+                <main>
+                    <section class="simulation-grid">
+                        <article class="simulation-item">
+                            <h3>Escaneo de puertos</h3>
+                            <p>Crea una alerta por acceso rapido a multiples puertos desde una IP simulada.</p>
+                            <button onclick="simulateAttack('port_scan')">Simular</button>
+                        </article>
+
+                        <article class="simulation-item">
+                            <h3>Fuerza bruta SSH</h3>
+                            <p>Crea una alerta por intentos repetidos contra el puerto 22.</p>
+                            <button onclick="simulateAttack('brute_force')">Simular</button>
+                        </article>
+
+                        <article class="simulation-item">
+                            <h3>SYN flood</h3>
+                            <p>Crea una alerta por exceso de paquetes SYN desde el mismo origen.</p>
+                            <button onclick="simulateAttack('syn_flood')">Simular</button>
+                        </article>
+
+                        <article class="simulation-item">
+                            <h3>ICMP flood</h3>
+                            <p>Crea una alerta por trafico ICMP repetitivo.</p>
+                            <button onclick="simulateAttack('icmp_flood')">Simular</button>
+                        </article>
+
+                        <article class="simulation-item">
+                            <h3>Puerto raro</h3>
+                            <p>Crea una alerta por conexion hacia el puerto 31337.</p>
+                            <button onclick="simulateAttack('rare_port')">Simular</button>
+                        </article>
+
+                        <article class="simulation-item">
+                            <h3>Alta frecuencia</h3>
+                            <p>Crea una alerta por muchas conexiones TCP desde una misma IP.</p>
+                            <button onclick="simulateAttack('connection_frequency')">Simular</button>
+                        </article>
+                    </section>
+
+                    <div class="simulation-result" id="simulationResult">
+                        Selecciona una simulacion para generar una alerta demo.
+                    </div>
+
+                    <section class="info-panel" style="margin-top: 18px;">
+                        <h3>Escaneo real con Nmap</h3>
+                        <p>Ejecuta un escaneo real contra una IP de tu red local y registra una alerta en el historial. Para deteccion por paquetes, deja corriendo el IDS principal o Suricata.</p>
+                        <div class="inline-form">
+                            <input id="realScanTargetInput" type="text" placeholder="IP local. Vacio usa gateway">
+                            <select id="realScanPortsInput">
+                                <option value="1-100">Puertos 1-100</option>
+                                <option value="1-1000">Puertos 1-1000</option>
+                                <option value="22,23,53,80,443,3389">Servicios comunes</option>
+                                <option value="31337,6667,9001">Puertos raros</option>
+                            </select>
+                            <button onclick="runRealNmapScan()">Ejecutar escaneo real</button>
+                        </div>
+                        <div class="command-box" id="realScanResult">Sin escaneo real ejecutado.</div>
+                    </section>
+                </main>
+            </section>
+
+            <section class="view" id="suricataView">
+                <header>
+                    <h2>Suricata IPS</h2>
+                    <p>Integracion con eve.json, reglas drop/reject y respuesta activa controlada.</p>
+                </header>
+
+                <main>
+                    <section class="cards">
+                        <div class="card">
+                            <h2>Alertas Suricata</h2>
+                            <p id="suricataTotalAlerts">0</p>
+                        </div>
+                        <div class="card">
+                            <h2>Bloqueadas</h2>
+                            <p id="suricataBlockedAlerts">0</p>
+                        </div>
+                        <div class="card">
+                            <h2>eve.json</h2>
+                            <p id="suricataEveStatus">No</p>
+                        </div>
+                        <div class="card">
+                            <h2>local.rules</h2>
+                            <p id="suricataRulesStatus">No</p>
+                        </div>
+                    </section>
+
+                    <section class="split-grid">
+                        <article class="info-panel">
+                            <h3>Evento demo IPS</h3>
+                            <p>Genera una linea compatible con Suricata EVE para probar la tabla sin instalar Suricata todavia.</p>
+                            <div class="actions" style="margin-top: 12px;">
+                                <button onclick="simulateSuricataAlert()">Generar alerta Suricata</button>
+                            </div>
+                            <div class="simulation-result" id="suricataResult">Esperando evento Suricata.</div>
+                        </article>
+
+                        <article class="info-panel">
+                            <h3>Bloquear IP sospechosa</h3>
+                            <p>Genera comandos de bloqueo para aplicar manualmente con permisos de administrador.</p>
+                            <div class="inline-form">
+                                <input id="blockIpInput" type="text" placeholder="Ej. 10.10.10.44">
+                                <button onclick="generateBlockCommand()">Generar bloqueo</button>
+                            </div>
+                        </article>
+                    </section>
+
+                    <section class="info-panel" style="margin-bottom: 16px;">
+                        <h3>Modo IPS/inline</h3>
+                        <p>Genera una configuracion de laboratorio para enviar trafico del firewall a Suricata con NFQUEUE.</p>
+                        <div class="inline-form">
+                            <input id="inlineInterfaceInput" type="text" value="eth0" placeholder="Interfaz Linux. Ej. eth0">
+                            <input id="inlineQueueInput" type="number" min="0" value="0" placeholder="Cola NFQUEUE">
+                            <button onclick="generateInlinePlan()">Generar IPS inline</button>
+                        </div>
+                        <div class="split-grid" style="margin-top: 14px;">
+                            <article>
+                                <h3>Activar</h3>
+                                <div class="command-box" id="inlineEnableCommands">Sin comandos generados.</div>
+                            </article>
+                            <article>
+                                <h3>Desactivar</h3>
+                                <div class="command-box" id="inlineDisableCommands">Sin comandos generados.</div>
+                            </article>
+                        </div>
+                        <div class="command-box" id="inlineYamlHint">Sin fragmento YAML generado.</div>
+                    </section>
+
+                    <section class="split-grid">
+                        <article class="info-panel">
+                            <h3>Comando Windows Firewall</h3>
+                            <div class="command-box" id="windowsBlockCommand">Sin comando generado.</div>
+                        </article>
+
+                        <article class="info-panel">
+                            <h3>Regla Suricata drop</h3>
+                            <div class="command-box" id="suricataDropCommand">Sin regla generada.</div>
+                        </article>
+                    </section>
+
+                    <section class="info-panel" style="margin-bottom: 16px;">
+                        <h3>Politica YouTube</h3>
+                        <p>Para YouTube conviene combinar deteccion Suricata con DNS filtering o firewall, porque usa HTTPS, QUIC y CDNs compartidos.</p>
+                        <div class="inline-form">
+                            <input id="youtubeBlockIpInput" type="text" placeholder="IP a restringir. Ej. 192.168.1.50">
+                            <button onclick="generateYoutubeBlockPolicy()">Bloquear YouTube para IP</button>
+                            <button onclick="saveYoutubePolicy()">Guardar politica</button>
+                            <button class="secondary-button" onclick="loadYoutubePolicy()">Ver politica sugerida</button>
+                        </div>
+                        <div class="command-box" id="youtubePolicyBox">Sin politica cargada.</div>
+                        <table style="margin-top: 16px;">
+                            <thead>
+                                <tr>
+                                    <th>Fecha/Hora</th>
+                                    <th>IP objetivo</th>
+                                    <th>Tipo</th>
+                                    <th>Estado</th>
+                                    <th>Aplicar en</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ipsPoliciesTable">
+                                <tr>
+                                    <td colspan="5" class="empty">Sin politicas guardadas</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </section>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha/Hora</th>
+                                <th>Firma</th>
+                                <th>Severidad</th>
+                                <th>Accion</th>
+                                <th>Origen</th>
+                                <th>Destino</th>
+                                <th>Protocolo</th>
+                            </tr>
+                        </thead>
+                        <tbody id="suricataAlertsTable">
+                            <tr>
+                                <td colspan="7" class="empty">Sin alertas Suricata</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </main>
             </section>
 
@@ -807,31 +1152,43 @@
             const dashboardView = document.getElementById("dashboardView");
             const trafficView = document.getElementById("trafficView");
             const classifiedView = document.getElementById("classifiedView");
+            const networkView = document.getElementById("networkView");
             const statusView = document.getElementById("statusView");
             const chartsView = document.getElementById("chartsView");
             const historyView = document.getElementById("historyView");
+            const simulatorView = document.getElementById("simulatorView");
+            const suricataView = document.getElementById("suricataView");
             const rulesView = document.getElementById("rulesView");
             const dashboardNav = document.getElementById("dashboardNav");
             const trafficNav = document.getElementById("trafficNav");
             const classifiedNav = document.getElementById("classifiedNav");
+            const networkNav = document.getElementById("networkNav");
             const statusNav = document.getElementById("statusNav");
             const chartsNav = document.getElementById("chartsNav");
             const historyNav = document.getElementById("historyNav");
+            const simulatorNav = document.getElementById("simulatorNav");
+            const suricataNav = document.getElementById("suricataNav");
             const rulesNav = document.getElementById("rulesNav");
 
             dashboardView.classList.toggle("active", viewName === "dashboard");
             trafficView.classList.toggle("active", viewName === "traffic");
             classifiedView.classList.toggle("active", viewName === "classified");
+            networkView.classList.toggle("active", viewName === "network");
             statusView.classList.toggle("active", viewName === "status");
             chartsView.classList.toggle("active", viewName === "charts");
             historyView.classList.toggle("active", viewName === "history");
+            simulatorView.classList.toggle("active", viewName === "simulator");
+            suricataView.classList.toggle("active", viewName === "suricata");
             rulesView.classList.toggle("active", viewName === "rules");
             dashboardNav.classList.toggle("active", viewName === "dashboard");
             trafficNav.classList.toggle("active", viewName === "traffic");
             classifiedNav.classList.toggle("active", viewName === "classified");
+            networkNav.classList.toggle("active", viewName === "network");
             statusNav.classList.toggle("active", viewName === "status");
             chartsNav.classList.toggle("active", viewName === "charts");
             historyNav.classList.toggle("active", viewName === "history");
+            simulatorNav.classList.toggle("active", viewName === "simulator");
+            suricataNav.classList.toggle("active", viewName === "suricata");
             rulesNav.classList.toggle("active", viewName === "rules");
 
             if (viewName === "history") {
@@ -841,6 +1198,14 @@
             if (viewName === "charts" && latestChartData) {
                 renderCharts(latestChartData);
             }
+
+            if (viewName === "suricata") {
+                loadSuricata();
+            }
+
+            if (viewName === "network") {
+                loadNetworkDevices();
+            }
         }
 
         function renderAlertRows(table, alerts) {
@@ -849,7 +1214,7 @@
             if (alerts.length === 0) {
                 const row = document.createElement("tr");
                 const cell = document.createElement("td");
-                cell.colSpan = 5;
+                cell.colSpan = 7;
                 cell.className = "empty";
                 cell.textContent = "Sin alertas registradas";
                 row.appendChild(cell);
@@ -862,8 +1227,10 @@
                 const values = [
                     alert.timestamp,
                     alert.level,
+                    alert.category || "-",
                     alert.type,
                     alert.source_ip,
+                    formatAlertTarget(alert),
                     alert.description
                 ];
 
@@ -880,6 +1247,17 @@
 
                 table.appendChild(row);
             });
+        }
+
+        function formatAlertTarget(alert) {
+            const targetIp = alert.target_ip || "-";
+            const targetPort = alert.target_port || "";
+
+            if (!targetPort || targetPort === "-") {
+                return targetIp;
+            }
+
+            return `${targetIp}:${targetPort}`;
         }
 
         function getVisibleAlerts() {
@@ -951,11 +1329,12 @@
 
             return latestAlerts.filter(alert => {
                 const sourceIp = String(alert.source_ip || "").toLowerCase();
+                const targetIp = String(alert.target_ip || "").toLowerCase();
                 const type = String(alert.type || "");
                 const level = String(alert.level || "");
                 const alertDate = String(alert.timestamp || "").slice(0, 10);
 
-                if (ipFilter && !sourceIp.includes(ipFilter)) {
+                if (ipFilter && !sourceIp.includes(ipFilter) && !targetIp.includes(ipFilter)) {
                     return false;
                 }
 
@@ -1074,6 +1453,80 @@
             renderClassifiedTrafficRows(table, trafficEvents.slice().reverse());
         }
 
+        function renderNetworkDevices(devices) {
+            const table = document.getElementById("networkDevicesTable");
+            table.innerHTML = "";
+
+            if (!devices || devices.length === 0) {
+                const row = document.createElement("tr");
+                const cell = document.createElement("td");
+                cell.colSpan = 5;
+                cell.className = "empty";
+                cell.textContent = "No se encontraron dispositivos activos";
+                row.appendChild(cell);
+                table.appendChild(row);
+                return;
+            }
+
+            devices.forEach(device => {
+                const row = document.createElement("tr");
+                const values = [
+                    device.ip || "-",
+                    device.mac || "-",
+                    device.hostname || "-",
+                    device.role || "Dispositivo",
+                    device.status || "-"
+                ];
+
+                values.forEach((value, index) => {
+                    const cell = document.createElement("td");
+                    cell.textContent = value;
+
+                    if (index === 3 && value === "Gateway") {
+                        cell.className = "medio";
+                    }
+
+                    if (index === 3 && value === "Este equipo") {
+                        cell.className = "bajo";
+                    }
+
+                    row.appendChild(cell);
+                });
+
+                table.appendChild(row);
+            });
+        }
+
+        async function loadNetworkDevices() {
+            const status = document.getElementById("networkScanStatus");
+            status.className = "simulation-result";
+            status.textContent = "Escaneando red local...";
+
+            try {
+                const response = await fetch("/api/network/devices");
+                const payload = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(payload.message || "No se pudo escanear la red.");
+                }
+
+                document.getElementById("networkDeviceCount").textContent = payload.device_count || 0;
+                document.getElementById("networkRange").textContent = payload.network || "-";
+                document.getElementById("networkGateway").textContent = payload.gateway || "-";
+                document.getElementById("networkInterface").textContent = payload.interface || "-";
+                renderNetworkDevices(payload.devices);
+
+                status.className = "simulation-result success";
+                status.textContent = payload.ping_sweep_used
+                    ? "Escaneo completado con ping sweep y tabla ARP."
+                    : "Escaneo completado usando tabla ARP. Red grande detectada.";
+            } catch (error) {
+                status.className = "simulation-result error";
+                status.textContent = error.message;
+                renderNetworkDevices([]);
+            }
+        }
+
         function setStatusText(id, value) {
             document.getElementById(id).textContent = value || "-";
         }
@@ -1100,7 +1553,7 @@
                 return "Sin alertas registradas";
             }
 
-            return `${alert.timestamp || "-"} | ${alert.level || "-"} | ${alert.type || "-"} | ${alert.source_ip || "-"} | ${alert.description || "-"}`;
+            return `${alert.timestamp || "-"} | ${alert.level || "-"} | ${alert.category || "-"} | ${alert.type || "-"} | ${alert.source_ip || "-"} -> ${formatAlertTarget(alert)} | ${alert.description || "-"}`;
         }
 
         function formatLastTraffic(event) {
@@ -1118,6 +1571,230 @@
             const status = await response.json();
 
             renderIdsStatus(status);
+        }
+
+        function renderSuricataAlerts(alerts) {
+            const table = document.getElementById("suricataAlertsTable");
+            table.innerHTML = "";
+
+            if (alerts.length === 0) {
+                const row = document.createElement("tr");
+                const cell = document.createElement("td");
+                cell.colSpan = 7;
+                cell.className = "empty";
+                cell.textContent = "Sin alertas Suricata";
+                row.appendChild(cell);
+                table.appendChild(row);
+                return;
+            }
+
+            alerts.slice().reverse().forEach(alert => {
+                const row = document.createElement("tr");
+                const destination = `${alert.destination_ip || "-"}:${alert.destination_port || "-"}`;
+                const source = `${alert.source_ip || "-"}:${alert.source_port || "-"}`;
+                const values = [
+                    alert.timestamp || "-",
+                    alert.signature || "-",
+                    alert.severity || "-",
+                    alert.verdict || alert.action || "-",
+                    source,
+                    destination,
+                    alert.protocol || "-"
+                ];
+
+                values.forEach((value, index) => {
+                    const cell = document.createElement("td");
+                    cell.textContent = value;
+
+                    if (index === 3 && String(value).toLowerCase() !== "allowed") {
+                        cell.className = "alto";
+                    }
+
+                    row.appendChild(cell);
+                });
+
+                table.appendChild(row);
+            });
+        }
+
+        async function loadSuricata() {
+            const [statusResponse, alertsResponse] = await Promise.all([
+                fetch("/api/suricata/status"),
+                fetch("/api/suricata/alerts")
+            ]);
+            const status = await statusResponse.json();
+            const alerts = await alertsResponse.json();
+
+            document.getElementById("suricataTotalAlerts").textContent = status.total_alerts || 0;
+            document.getElementById("suricataBlockedAlerts").textContent = status.blocked_alerts || 0;
+            document.getElementById("suricataEveStatus").textContent = status.eve_log_exists ? "Si" : "No";
+            document.getElementById("suricataRulesStatus").textContent = status.local_rules_exists ? "Si" : "No";
+            renderSuricataAlerts(alerts);
+            await loadIpsPolicies();
+        }
+
+        async function simulateSuricataAlert() {
+            const result = document.getElementById("suricataResult");
+            result.className = "simulation-result";
+            result.textContent = "Generando evento EVE...";
+
+            try {
+                const response = await fetch("/api/suricata/demo-alert", { method: "POST" });
+                const payload = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(payload.message || "No se pudo generar la alerta Suricata.");
+                }
+
+                result.className = "simulation-result success";
+                result.textContent = payload.message;
+                document.getElementById("blockIpInput").value = payload.alert.source_ip || "";
+                document.getElementById("youtubeBlockIpInput").value = payload.alert.source_ip || "";
+                await loadSuricata();
+            } catch (error) {
+                result.className = "simulation-result error";
+                result.textContent = error.message;
+            }
+        }
+
+        async function generateBlockCommand() {
+            const ip = document.getElementById("blockIpInput").value.trim();
+            const response = await fetch("/api/ips/block-command", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ip })
+            });
+            const payload = await response.json();
+
+            if (!response.ok) {
+                document.getElementById("windowsBlockCommand").textContent = payload.message;
+                document.getElementById("suricataDropCommand").textContent = payload.message;
+                return;
+            }
+
+            document.getElementById("windowsBlockCommand").textContent = payload.command.windows_powershell;
+            document.getElementById("suricataDropCommand").textContent = payload.command.suricata_drop_rule;
+        }
+
+        async function generateInlinePlan() {
+            const interfaceName = document.getElementById("inlineInterfaceInput").value.trim();
+            const queueNumber = Number(document.getElementById("inlineQueueInput").value || 0);
+            const response = await fetch("/api/ips/inline-plan", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    interface: interfaceName,
+                    queue_num: queueNumber
+                })
+            });
+            const payload = await response.json();
+
+            if (!response.ok) {
+                document.getElementById("inlineEnableCommands").textContent = payload.message;
+                document.getElementById("inlineDisableCommands").textContent = payload.message;
+                document.getElementById("inlineYamlHint").textContent = payload.message;
+                return;
+            }
+
+            document.getElementById("inlineEnableCommands").textContent =
+                payload.plan.enable_commands.join("\n");
+            document.getElementById("inlineDisableCommands").textContent =
+                payload.plan.disable_commands.join("\n");
+            document.getElementById("inlineYamlHint").textContent =
+                `${payload.plan.notes}\n\nRequisitos:\n- ${payload.plan.requirements.join("\n- ")}\n\nsuricata.yaml:\n${payload.plan.suricata_yaml_hint}`;
+        }
+
+        async function loadYoutubePolicy() {
+            const response = await fetch("/api/ips/youtube-policy");
+            const policy = await response.json();
+            const ruleText = policy.suricata_example_rules.join("\n\n");
+
+            document.getElementById("youtubePolicyBox").textContent =
+                `${policy.note}\n\nDominios sugeridos para DNS filtering:\n${policy.dns_policy_list}\n\nReglas Suricata ejemplo:\n${ruleText}`;
+        }
+
+        function renderIpsPolicies(policies) {
+            const table = document.getElementById("ipsPoliciesTable");
+            table.innerHTML = "";
+
+            if (!policies || policies.length === 0) {
+                const row = document.createElement("tr");
+                const cell = document.createElement("td");
+                cell.colSpan = 5;
+                cell.className = "empty";
+                cell.textContent = "Sin politicas guardadas";
+                row.appendChild(cell);
+                table.appendChild(row);
+                return;
+            }
+
+            policies.slice().reverse().forEach(policy => {
+                const row = document.createElement("tr");
+                const values = [
+                    policy.timestamp || "-",
+                    policy.target_ip || "-",
+                    policy.type || "-",
+                    policy.status || "-",
+                    policy.apply_at || "-"
+                ];
+
+                values.forEach((value, index) => {
+                    const cell = document.createElement("td");
+                    cell.textContent = value;
+
+                    if (index === 3) {
+                        cell.className = "medio";
+                    }
+
+                    row.appendChild(cell);
+                });
+
+                table.appendChild(row);
+            });
+        }
+
+        async function loadIpsPolicies() {
+            const response = await fetch("/api/ips/policies");
+            const policies = await response.json();
+            renderIpsPolicies(policies);
+        }
+
+        async function generateYoutubeBlockPolicy() {
+            const ip = document.getElementById("youtubeBlockIpInput").value.trim();
+            const response = await fetch("/api/ips/youtube-block-command", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ip })
+            });
+            const payload = await response.json();
+
+            if (!response.ok) {
+                document.getElementById("youtubePolicyBox").textContent = payload.message;
+                return;
+            }
+
+            document.getElementById("youtubePolicyBox").textContent =
+                `${payload.policy.note}\n\nReglas Suricata para ${payload.policy.ip}:\n${payload.policy.suricata_rules_text}`;
+        }
+
+        async function saveYoutubePolicy() {
+            const ip = document.getElementById("youtubeBlockIpInput").value.trim();
+            const response = await fetch("/api/ips/youtube-policy/save", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ ip })
+            });
+            const payload = await response.json();
+
+            if (!response.ok) {
+                document.getElementById("youtubePolicyBox").textContent = payload.message;
+                return;
+            }
+
+            document.getElementById("youtubePolicyBox").textContent =
+                `${payload.message}\n\nIP objetivo: ${payload.policy.target_ip}\nEstado: ${payload.policy.status}\nAplicar en: ${payload.policy.apply_at}`;
+            await loadIpsPolicies();
+            await refresh();
         }
 
         function getCanvasContext(canvasId) {
@@ -1327,6 +2004,54 @@
             renderHistory();
         }
 
+        async function simulateAttack(attackType) {
+            const result = document.getElementById("simulationResult");
+            result.className = "simulation-result";
+            result.textContent = "Generando simulacion...";
+
+            try {
+                const response = await fetch(`/api/simulate/${attackType}`, { method: "POST" });
+                const payload = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(payload.message || "No se pudo generar la simulacion.");
+                }
+
+                result.className = "simulation-result success";
+                result.textContent = `${payload.message}. Revisa Dashboard, Graficos e Historial.`;
+                await refresh();
+            } catch (error) {
+                result.className = "simulation-result error";
+                result.textContent = error.message;
+            }
+        }
+
+        async function runRealNmapScan() {
+            const target = document.getElementById("realScanTargetInput").value.trim();
+            const ports = document.getElementById("realScanPortsInput").value;
+            const result = document.getElementById("realScanResult");
+            result.textContent = "Ejecutando Nmap en la red local...";
+
+            try {
+                const response = await fetch("/api/real-scan/nmap", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ target, ports })
+                });
+                const payload = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(payload.message || "No se pudo ejecutar Nmap.");
+                }
+
+                result.textContent =
+                    `Comando:\n${payload.result.command}\n\nSalida:\n${payload.result.stdout || "(sin salida)"}\n${payload.result.stderr || ""}`;
+                await refresh();
+            } catch (error) {
+                result.textContent = error.message;
+            }
+        }
+
         function exportHistory(format) {
             if (format === "json") {
                 window.location.href = "/api/export/alerts.json";
@@ -1358,6 +2083,7 @@
             await loadClassifiedTraffic();
             await loadIdsStatus();
             await loadCharts();
+            await loadSuricata();
         }
 
         window.addEventListener("resize", () => {

@@ -1,0 +1,21 @@
+# TrafficWatch IDS - reglas locales Suricata IPS
+#
+# Para aplicar bloqueo real, Suricata debe ejecutarse en modo IPS/inline.
+# En modo IDS, las reglas drop/reject se registran como politica, pero no cortan trafico.
+
+drop tcp any any -> $HOME_NET 22 (msg:"TrafficWatch IPS posible fuerza bruta SSH"; flow:to_server; flags:S; threshold:type threshold, track by_src, count 8, seconds 30; classtype:attempted-admin; sid:9000001; rev:1;)
+drop tcp any any -> $HOME_NET [31337,6667,9001] (msg:"TrafficWatch IPS puerto raro bloqueado"; flow:to_server; classtype:trojan-activity; sid:9000002; rev:1;)
+drop tcp any any -> $HOME_NET any (msg:"TrafficWatch IPS exceso de conexiones SYN"; flags:S; threshold:type threshold, track by_src, count 30, seconds 5; classtype:attempted-dos; sid:9000003; rev:1;)
+
+# Politica de red: YouTube.
+# Es una aproximacion. YouTube usa HTTPS, QUIC, CDNs y dominios compartidos.
+# Para bloqueo estable, combinar con DNS filtering o firewall perimetral.
+
+drop tls any any -> any any (msg:"TrafficWatch IPS politica YouTube TLS"; tls.sni; content:"youtube.com"; nocase; classtype:policy-violation; sid:9000201; rev:1;)
+drop tls any any -> any any (msg:"TrafficWatch IPS politica GoogleVideo TLS"; tls.sni; content:"googlevideo.com"; nocase; classtype:policy-violation; sid:9000202; rev:1;)
+
+# Ejemplo por IP especifica:
+# Reemplaza 192.168.1.50 por la IP del equipo al que quieres bloquear YouTube.
+#
+# drop tls 192.168.1.50 any -> any any (msg:"TrafficWatch IPS bloquear YouTube para 192.168.1.50"; tls.sni; content:"youtube.com"; nocase; classtype:policy-violation; sid:9000301; rev:1;)
+# drop tls 192.168.1.50 any -> any any (msg:"TrafficWatch IPS bloquear GoogleVideo para 192.168.1.50"; tls.sni; content:"googlevideo.com"; nocase; classtype:policy-violation; sid:9000302; rev:1;)

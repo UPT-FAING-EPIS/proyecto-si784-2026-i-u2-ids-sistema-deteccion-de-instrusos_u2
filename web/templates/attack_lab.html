@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrafficWatch Lab</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0f172a;
+            color: #e5e7eb;
+            font-family: Arial, sans-serif;
+            margin: 0;
+        }
+
+        header {
+            background: #111827;
+            border-bottom: 2px solid #ef4444;
+            padding: 24px;
+        }
+
+        header h1 {
+            color: #f87171;
+            font-size: 30px;
+            margin: 0;
+        }
+
+        header p {
+            color: #cbd5e1;
+            margin: 10px 0 0;
+        }
+
+        main {
+            padding: 22px;
+        }
+
+        .grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-bottom: 18px;
+        }
+
+        .panel {
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            display: grid;
+            gap: 12px;
+            min-height: 180px;
+            padding: 18px;
+        }
+
+        h2 {
+            color: #93c5fd;
+            font-size: 18px;
+            margin: 0;
+        }
+
+        p {
+            color: #d1d5db;
+            line-height: 1.45;
+            margin: 0;
+        }
+
+        button {
+            align-self: end;
+            background: #ef4444;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 12px 14px;
+        }
+
+        button:hover {
+            background: #dc2626;
+        }
+
+        .result {
+            background: #020617;
+            border: 1px solid #1e293b;
+            border-radius: 8px;
+            color: #bfdbfe;
+            font-family: Consolas, monospace;
+            min-height: 70px;
+            padding: 16px;
+            white-space: pre-wrap;
+        }
+
+        .scan-panel {
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            margin-bottom: 18px;
+            padding: 18px;
+        }
+
+        .scan-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        input,
+        select {
+            background: #111827;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            color: #e5e7eb;
+            min-width: 230px;
+            padding: 12px;
+        }
+
+        .success {
+            border-color: #16a34a;
+            color: #bbf7d0;
+        }
+
+        .hint {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .error {
+            border-color: #ef4444;
+            color: #fecaca;
+        }
+
+        @media (max-width: 900px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>TrafficWatch Lab</h1>
+        <p>Panel remoto para generar trafico de laboratorio hacia el dashboard IDS.</p>
+    </header>
+
+    <main>
+        <section class="scan-panel">
+            <h2>Objetivo del laboratorio</h2>
+            <p>Ingresa una IP autorizada, puerto y duracion para registrar la prueba en el dashboard.</p>
+            <div class="scan-form">
+                <input id="targetIpInput" type="text" placeholder="Ej. 192.168.100.10">
+                <input id="targetPortInput" type="number" min="1" max="65535" value="5000" placeholder="Puerto objetivo">
+                <select id="durationInput">
+                    <option value="3">3 segundos</option>
+                    <option value="5">5 segundos</option>
+                    <option value="10">10 segundos</option>
+                    <option value="15">15 segundos</option>
+                </select>
+                <select id="intensityInput">
+                    <option value="10">Baja: 10 solicitudes</option>
+                    <option value="25">Media: 25 solicitudes</option>
+                    <option value="50">Alta: 50 solicitudes</option>
+                    <option value="80">Max laboratorio: 80 solicitudes</option>
+                </select>
+            </div>
+            <p class="hint">Las pruebas de trafico son HTTP controlado contra el dashboard; no ejecutan flood destructivo ni fuerza bruta real.</p>
+        </section>
+
+        <section class="scan-panel">
+            <h2>Escaneo real con Nmap</h2>
+            <p>Usa la IP objetivo y el rango de puertos a revisar. Solo para redes donde tienes permiso.</p>
+            <div class="scan-form">
+                <select id="targetPortsInput">
+                    <option value="1-100">Puertos 1-100</option>
+                    <option value="1-1000">Puertos 1-1000</option>
+                    <option value="22,23,53,80,443,3389">Servicios comunes</option>
+                    <option value="31337,6667,9001">Puertos raros</option>
+                </select>
+                <button onclick="runNmapScan()">Escanear IP</button>
+            </div>
+        </section>
+
+        <section class="grid">
+            <article class="panel">
+                <h2>Escaneo de puertos</h2>
+                <p>Genera una alerta remota de escaneo desde la IP de este equipo.</p>
+                <button onclick="sendAttack('port_scan')">Enviar</button>
+            </article>
+
+            <article class="panel">
+                <h2>Fuerza bruta SSH</h2>
+                <p>Registra solicitudes HTTP controladas como equivalente seguro a intentos repetidos.</p>
+                <button onclick="sendRealTraffic('brute_force')">Enviar trafico</button>
+            </article>
+
+            <article class="panel">
+                <h2>SYN flood</h2>
+                <p>Registra una rafaga HTTP controlada para explicar deteccion por frecuencia.</p>
+                <button onclick="sendRealTraffic('syn_flood')">Enviar trafico</button>
+            </article>
+
+            <article class="panel">
+                <h2>ICMP flood</h2>
+                <p>Registra actividad repetitiva controlada como equivalente seguro a ICMP.</p>
+                <button onclick="sendRealTraffic('icmp_flood')">Enviar trafico</button>
+            </article>
+
+            <article class="panel">
+                <h2>Puerto raro</h2>
+                <p>Registra trafico remoto real como intento controlado hacia puerto raro.</p>
+                <button onclick="sendRealTraffic('rare_port')">Enviar trafico</button>
+            </article>
+
+            <article class="panel">
+                <h2>Alta frecuencia</h2>
+                <p>Envia solicitudes HTTP controladas para probar alta frecuencia desde esta IP.</p>
+                <button onclick="sendRealTraffic('connection_frequency')">Enviar trafico</button>
+            </article>
+        </section>
+
+        <div class="result" id="result">Esperando accion del laboratorio remoto.</div>
+    </main>
+
+    <script>
+        async function sendAttack(type) {
+            const result = document.getElementById("result");
+            result.className = "result";
+            result.textContent = "Enviando evento remoto...";
+
+            try {
+                const response = await fetch(`/api/remote-attack/${type}`, {
+                    method: "POST"
+                });
+                const payload = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(payload.message || "No se pudo enviar el evento.");
+                }
+
+                result.className = "result success";
+                result.textContent =
+                    `${payload.message}\nIP registrada: ${payload.alert.source_ip}\nTipo: ${payload.alert.type}`;
+            } catch (error) {
+                result.className = "result error";
+                result.textContent = error.message;
+            }
+        }
+
+        async function runNmapScan() {
+            const target = document.getElementById("targetIpInput").value.trim();
+            const ports = document.getElementById("targetPortsInput").value;
+            const result = document.getElementById("result");
+            result.className = "result";
+            result.textContent = "Ejecutando escaneo real con Nmap...";
+
+            try {
+                const response = await fetch("/api/real-scan/nmap", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ target, ports })
+                });
+                const payload = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(payload.message || "No se pudo ejecutar el escaneo.");
+                }
+
+                result.className = "result success";
+                result.textContent =
+                    `Escaneo completado\nObjetivo: ${payload.result.target}\nPuertos: ${payload.result.ports}\n\n${payload.result.stdout || "(sin salida)"}`;
+            } catch (error) {
+                result.className = "result error";
+                result.textContent = error.message;
+            }
+        }
+
+        function getLabOptions() {
+            const target = document.getElementById("targetIpInput").value.trim() || "dashboard";
+            const destinationPort = Number(document.getElementById("targetPortInput").value || 5000);
+            const durationSeconds = Number(document.getElementById("durationInput").value || 3);
+            const total = Number(document.getElementById("intensityInput").value || 10);
+
+            return { target, destinationPort, durationSeconds, total };
+        }
+
+        function sleep(milliseconds) {
+            return new Promise(resolve => setTimeout(resolve, milliseconds));
+        }
+
+        async function sendRealTraffic(type) {
+            const options = getLabOptions();
+            const result = document.getElementById("result");
+            result.className = "result";
+            result.textContent = `Enviando ${options.total} solicitudes reales de laboratorio...`;
+
+            try {
+                let lastPayload = null;
+                const intervalMs = Math.max(40, Math.floor((options.durationSeconds * 1000) / options.total));
+
+                for (let index = 1; index <= options.total; index += 1) {
+                    const response = await fetch(`/api/remote-lab-traffic/${type}`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            target: options.target,
+                            destination_port: options.destinationPort,
+                            duration_seconds: options.durationSeconds,
+                            sequence: index,
+                            total: options.total,
+                            final: index === options.total
+                        })
+                    });
+                    const payload = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(payload.message || "No se pudo enviar el trafico.");
+                    }
+
+                    lastPayload = payload;
+                    result.textContent = `Enviando trafico real: ${index}/${options.total}`;
+                    if (index < options.total) {
+                        await sleep(intervalMs);
+                    }
+                }
+
+                result.className = "result success";
+                result.textContent =
+                    `Trafico real enviado\nIP registrada: ${lastPayload.source_ip}\nObjetivo: ${lastPayload.target}:${lastPayload.destination_port}\nSolicitudes: ${options.total}\nDuracion: ${options.durationSeconds}s\nAlerta: ${lastPayload.alert ? lastPayload.alert.type : "registrada"}`;
+            } catch (error) {
+                result.className = "result error";
+                result.textContent = error.message;
+            }
+        }
+    </script>
+</body>
+</html>

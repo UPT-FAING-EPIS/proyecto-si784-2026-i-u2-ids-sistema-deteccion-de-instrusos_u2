@@ -2,25 +2,169 @@ from collections import Counter
 import csv
 from datetime import datetime
 import io
+import ipaddress
 import json
 from pathlib import Path
-from flask import Flask, Response, jsonify, render_template
+import subprocess
+from flask import Flask, Response, jsonify, render_template, request
 
+from src.network_scanner import scan_local_network
+from src.real_scan import run_local_nmap_scan
 from src.status_manager import read_status
 from src.storage import AlertStorage
+from src.suricata_integration import (
+    DEFAULT_EVE_LOG_FILE,
+    DEFAULT_LOCAL_RULES_FILE,
+    append_demo_suricata_alert,
+    build_firewall_block_command,
+    build_inline_ips_plan,
+    build_youtube_block_for_ip,
+    build_youtube_policy_commands,
+    get_suricata_status,
+    read_suricata_alerts,
+)
 
 app = Flask(__name__)
 
 LOG_FILE = Path("logs/alerts.json")
 TRAFFIC_LOG_FILE = Path("logs/traffic.json")
 STATUS_FILE = Path("logs/status.json")
+POLICY_FILE = Path("logs/policies.json")
+CONFIG_FILE = Path("config.json")
 storage = AlertStorage(str(LOG_FILE))
 traffic_storage = AlertStorage(str(TRAFFIC_LOG_FILE), max_records=20)
+policy_storage = AlertStorage(str(POLICY_FILE))
+
+SIMULATED_ALERTS = {
+    "port_scan": {
+        "level": "ALTO",
+        "type": "ESCANEO_DE_PUERTOS",
+        "source_ip": "10.10.10.25",
+        "description": "SIMULACION: acceso rapido a multiples puertos del gateway.",
+        "traffic": {
+            "direction": "LOCAL",
+            "protocol": "TCP",
+            "source_ip": "10.10.10.25",
+            "destination_ip": "192.168.1.1",
+            "source_port": 50421,
+            "destination_port": 80,
+            "flags": "S"
+        }
+    },
+    "brute_force": {
+        "level": "ALTO",
+        "type": "FUERZA_BRUTA_SSH",
+        "source_ip": "10.10.10.44",
+        "description": "SIMULACION: varios intentos repetidos hacia SSH en pocos segundos.",
+        "traffic": {
+            "direction": "LOCAL",
+            "protocol": "TCP",
+            "source_ip": "10.10.10.44",
+            "destination_ip": "192.168.1.33",
+            "source_port": 51222,
+            "destination_port": 22,
+            "flags": "S"
+        }
+    },
+    "syn_flood": {
+        "level": "ALTO",
+        "type": "SYN_FLOOD",
+        "source_ip": "10.10.10.77",
+        "description": "SIMULACION: exceso de paquetes SYN desde una misma IP.",
+        "traffic": {
+            "direction": "ENTRANTE",
+            "protocol": "TCP",
+            "source_ip": "10.10.10.77",
+            "destination_ip": "192.168.1.33",
+            "source_port": 53000,
+            "destination_port": 443,
+            "flags": "S"
+        }
+    },
+    "icmp_flood": {
+        "level": "MEDIO",
+        "type": "ICMP_FLOOD",
+        "source_ip": "10.10.10.88",
+        "description": "SIMULACION: trafico ICMP repetitivo detectado.",
+        "traffic": {
+            "direction": "LOCAL",
+            "protocol": "ICMP",
+            "source_ip": "10.10.10.88",
+            "destination_ip": "192.168.1.33",
+            "source_port": None,
+            "destination_port": None,
+            "flags": ""
+        }
+    },
+    "rare_port": {
+        "level": "MEDIO",
+        "type": "PUERTO_RARO",
+        "source_ip": "10.10.10.99",
+        "description": "SIMULACION: conexion hacia puerto raro 31337.",
+        "traffic": {
+            "direction": "LOCAL",
+            "protocol": "TCP",
+            "source_ip": "10.10.10.99",
+            "destination_ip": "192.168.1.33",
+            "source_port": 54000,
+            "destination_port": 31337,
+            "flags": "S"
+        }
+    },
+    "connection_frequency": {
+        "level": "MEDIO",
+        "type": "ALTA_FRECUENCIA_CONEXIONES",
+        "source_ip": "10.10.10.66",
+        "description": "SIMULACION: muchas conexiones TCP desde la misma IP.",
+        "traffic": {
+            "direction": "LOCAL",
+            "protocol": "TCP",
+            "source_ip": "10.10.10.66",
+            "destination_ip": "192.168.1.33",
+            "source_port": 55000,
+            "destination_port": 80,
+            "flags": "S"
+        }
+    }
+}
+
+REMOTE_TRAFFIC_ALERTS = {
+    "brute_force": {
+        "level": "ALTO",
+        "type": "TRAFICO_REAL_LAB_FUERZA_BRUTA_SSH",
+        "description": "Trafico HTTP real de laboratorio equivalente a intentos repetidos SSH."
+    },
+    "syn_flood": {
+        "level": "ALTO",
+        "type": "TRAFICO_REAL_LAB_SYN_FLOOD",
+        "description": "Trafico HTTP real de laboratorio equivalente a rafaga SYN controlada."
+    },
+    "icmp_flood": {
+        "level": "MEDIO",
+        "type": "TRAFICO_REAL_LAB_ICMP_FLOOD",
+        "description": "Trafico HTTP real de laboratorio equivalente a rafaga ICMP controlada."
+    },
+    "rare_port": {
+        "level": "MEDIO",
+        "type": "TRAFICO_REAL_LAB_PUERTO_RARO",
+        "description": "Trafico HTTP real de laboratorio equivalente a acceso a puerto raro."
+    },
+    "connection_frequency": {
+        "level": "MEDIO",
+        "type": "TRAFICO_REAL_LAB_ALTA_FRECUENCIA",
+        "description": "Muchas solicitudes HTTP reales desde la misma IP remota."
+    },
+}
 
 
 @app.route("/")
 def dashboard():
     return render_template("dashboard.html")
+
+
+@app.route("/attack-lab")
+def attack_lab():
+    return render_template("attack_lab.html")
 
 
 @app.route("/api/alerts")
@@ -86,7 +230,17 @@ def export_alerts_json():
 def export_alerts_csv():
     alerts = storage.read()
     output = io.StringIO()
-    fieldnames = ["timestamp", "level", "type", "source_ip", "description"]
+    fieldnames = [
+        "timestamp",
+        "level",
+        "category",
+        "type",
+        "source_ip",
+        "target_ip",
+        "target_port",
+        "evidence_count",
+        "description",
+    ]
     writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction="ignore")
 
     writer.writeheader()
@@ -154,6 +308,180 @@ def api_stats():
     })
 
 
+@app.route("/api/network/devices")
+def api_network_devices():
+    try:
+        return jsonify(scan_local_network())
+    except Exception as error:
+        return jsonify({
+            "status": "error",
+            "message": str(error),
+            "devices": []
+        }), 500
+
+
+@app.route("/api/real-scan/nmap", methods=["POST"])
+def api_real_nmap_scan():
+    data = request.get_json(silent=True) or {}
+
+    try:
+        result = run_local_nmap_scan(
+            target=data.get("target", ""),
+            ports=data.get("ports", "")
+        )
+    except (RuntimeError, ValueError, subprocess.SubprocessError) as error:
+        return jsonify({
+            "status": "error",
+            "message": str(error)
+        }), 400
+
+    requester_ip = _request_source_ip()
+    storage.save({
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "level": "MEDIO",
+        "category": "ESCANEO_REAL",
+        "type": "ESCANEO_REAL_NMAP",
+        "source_ip": requester_ip,
+        "target_ip": result["target"],
+        "target_port": result["ports"],
+        "evidence_count": 1,
+        "description": (
+            f"Escaneo real solicitado desde {requester_ip} "
+            f"contra {result['target']} "
+            f"en puertos {result['ports']}"
+        )
+    })
+
+    return jsonify({
+        "status": "ok",
+        "message": "Escaneo Nmap completado",
+        "result": result
+    })
+
+
+@app.route("/api/suricata/status")
+def api_suricata_status():
+    config = _suricata_config()
+
+    return jsonify(get_suricata_status(
+        config["eve_log_file"],
+        config["local_rules_file"]
+    ))
+
+
+@app.route("/api/suricata/alerts")
+def api_suricata_alerts():
+    config = _suricata_config()
+
+    return jsonify(read_suricata_alerts(
+        config["eve_log_file"],
+        max_events=config["max_alerts"]
+    ))
+
+
+@app.route("/api/suricata/demo-alert", methods=["POST"])
+def api_suricata_demo_alert():
+    config = _suricata_config()
+    alert = append_demo_suricata_alert(config["eve_log_file"])
+
+    return jsonify({
+        "status": "ok",
+        "message": "Alerta demo Suricata IPS generada",
+        "alert": alert
+    })
+
+
+@app.route("/api/ips/block-command", methods=["POST"])
+def api_ips_block_command():
+    data = request.get_json(silent=True) or {}
+
+    try:
+        command = build_firewall_block_command(data.get("ip"))
+    except ValueError as error:
+        return jsonify({"status": "error", "message": str(error)}), 400
+
+    return jsonify({"status": "ok", "command": command})
+
+
+@app.route("/api/ips/youtube-policy")
+def api_ips_youtube_policy():
+    return jsonify(build_youtube_policy_commands())
+
+
+@app.route("/api/ips/youtube-block-command", methods=["POST"])
+def api_ips_youtube_block_command():
+    data = request.get_json(silent=True) or {}
+
+    try:
+        policy = build_youtube_block_for_ip(data.get("ip"))
+    except ValueError as error:
+        return jsonify({"status": "error", "message": str(error)}), 400
+
+    return jsonify({"status": "ok", "policy": policy})
+
+
+@app.route("/api/ips/policies")
+def api_ips_policies():
+    return jsonify(policy_storage.read())
+
+
+@app.route("/api/ips/youtube-policy/save", methods=["POST"])
+def api_ips_save_youtube_policy():
+    data = request.get_json(silent=True) or {}
+
+    try:
+        policy = build_youtube_block_for_ip(data.get("ip"))
+    except ValueError as error:
+        return jsonify({"status": "error", "message": str(error)}), 400
+
+    record = {
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "type": "BLOQUEO_YOUTUBE",
+        "target_ip": policy["ip"],
+        "domains": policy["domains"],
+        "status": "GENERADA_PENDIENTE_DE_APLICAR",
+        "apply_at": "Gateway, router, DNS filtering o Suricata IPS inline",
+        "note": policy["note"],
+        "suricata_rules": policy["suricata_rules"],
+    }
+    policy_storage.save(record)
+    storage.save({
+        "timestamp": record["timestamp"],
+        "level": "MEDIO",
+        "category": "POLITICA_RESPUESTA",
+        "type": "POLITICA_BLOQUEO_YOUTUBE",
+        "source_ip": policy["ip"],
+        "target_ip": policy["ip"],
+        "target_port": "HTTPS/QUIC",
+        "evidence_count": len(policy["domains"]),
+        "description": (
+            f"Politica generada para bloquear YouTube a {policy['ip']}. "
+            "Pendiente de aplicar en gateway/router/DNS/IPS inline."
+        )
+    })
+
+    return jsonify({
+        "status": "ok",
+        "message": "Politica YouTube guardada",
+        "policy": record
+    })
+
+
+@app.route("/api/ips/inline-plan", methods=["POST"])
+def api_ips_inline_plan():
+    data = request.get_json(silent=True) or {}
+
+    try:
+        plan = build_inline_ips_plan(
+            interface=data.get("interface", "eth0"),
+            queue_num=data.get("queue_num", 0)
+        )
+    except (TypeError, ValueError) as error:
+        return jsonify({"status": "error", "message": str(error)}), 400
+
+    return jsonify({"status": "ok", "plan": plan})
+
+
 def _heartbeat_age_seconds(last_heartbeat):
     if not last_heartbeat:
         return None
@@ -173,7 +501,208 @@ def _timestamp_minute(timestamp: str) -> str:
     return timestamp[:16]
 
 
+def _suricata_config() -> dict:
+    config = {}
+
+    if CONFIG_FILE.exists():
+        try:
+            config = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            config = {}
+
+    suricata_config = config.get("suricata", {})
+
+    return {
+        "enabled": bool(suricata_config.get("enabled", True)),
+        "eve_log_file": suricata_config.get("eve_log_file", DEFAULT_EVE_LOG_FILE),
+        "local_rules_file": suricata_config.get("local_rules_file", DEFAULT_LOCAL_RULES_FILE),
+        "max_alerts": int(suricata_config.get("max_alerts", 100)),
+    }
+
+
 @app.route("/api/clear", methods=["POST"])
 def api_clear():
     storage.clear()
     return jsonify({"status": "ok", "message": "Alertas eliminadas"})
+
+
+@app.route("/api/simulate/<attack_type>", methods=["POST"])
+def api_simulate_attack(attack_type):
+    simulation = SIMULATED_ALERTS.get(attack_type)
+
+    if not simulation:
+        return jsonify({
+            "status": "error",
+            "message": "Tipo de simulacion no soportado"
+        }), 404
+
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    alert = {
+        "timestamp": timestamp,
+        "level": simulation["level"],
+        "category": "SIMULACION_LOCAL",
+        "type": simulation["type"],
+        "source_ip": simulation["source_ip"],
+        "target_ip": simulation["traffic"].get("destination_ip"),
+        "target_port": simulation["traffic"].get("destination_port"),
+        "evidence_count": 1,
+        "description": simulation["description"]
+    }
+    traffic_event = {
+        "timestamp": timestamp,
+        **simulation["traffic"]
+    }
+
+    storage.save(alert)
+    traffic_storage.save(traffic_event)
+
+    return jsonify({
+        "status": "ok",
+        "message": f"Simulacion generada: {alert['type']}",
+        "alert": alert
+    })
+
+
+@app.route("/api/remote-attack/<attack_type>", methods=["POST"])
+def api_remote_attack(attack_type):
+    simulation = SIMULATED_ALERTS.get(attack_type)
+
+    if not simulation:
+        return jsonify({
+            "status": "error",
+            "message": "Tipo de ataque remoto no soportado"
+        }), 404
+
+    source_ip = _request_source_ip()
+    target_ip = simulation["traffic"].get("destination_ip")
+    target_port = simulation["traffic"].get("destination_port")
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    alert = {
+        "timestamp": timestamp,
+        "level": simulation["level"],
+        "category": "SIMULACION_REMOTA",
+        "type": f"REMOTO_{simulation['type']}",
+        "source_ip": source_ip,
+        "target_ip": target_ip,
+        "target_port": target_port,
+        "evidence_count": 1,
+        "description": (
+            f"LAB REMOTO: {simulation['description']} "
+            f"Solicitud recibida desde {source_ip}."
+        )
+    }
+    traffic_event = {
+        "timestamp": timestamp,
+        **simulation["traffic"],
+        "source_ip": source_ip,
+        "destination_ip": target_ip,
+        "destination_port": target_port,
+    }
+
+    storage.save(alert)
+    traffic_storage.save(traffic_event)
+
+    return jsonify({
+        "status": "ok",
+        "message": f"Ataque remoto simulado: {alert['type']}",
+        "alert": alert
+    })
+
+
+@app.route("/api/remote-lab-traffic/<traffic_type>", methods=["POST"])
+def api_remote_lab_traffic(traffic_type):
+    template = REMOTE_TRAFFIC_ALERTS.get(traffic_type)
+
+    if not template:
+        return jsonify({
+            "status": "error",
+            "message": "Tipo de trafico remoto no soportado"
+        }), 404
+
+    data = request.get_json(silent=True) or {}
+    total = _bounded_int(data.get("total"), 1, 100, 1)
+    sequence = _bounded_int(data.get("sequence"), 1, total, 1)
+    is_final = bool(data.get("final", False))
+    source_ip = _request_source_ip()
+    try:
+        target = _validated_target(data.get("target"))
+        destination_port = _bounded_int(data.get("destination_port"), 1, 65535, 5000)
+        duration_seconds = _bounded_int(data.get("duration_seconds"), 1, 30, 3)
+    except ValueError as error:
+        return jsonify({"status": "error", "message": str(error)}), 400
+
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    traffic_storage.save({
+        "timestamp": timestamp,
+        "direction": "REMOTO_LAB",
+        "protocol": "HTTP",
+        "source_ip": source_ip,
+        "destination_ip": target,
+        "source_port": None,
+        "destination_port": destination_port,
+        "flags": f"{traffic_type} {sequence}/{total}"
+    })
+
+    alert = None
+
+    if is_final:
+        alert = {
+            "timestamp": timestamp,
+            "level": template["level"],
+            "category": "TRAFICO_REAL_LAB_CONTROLADO",
+            "type": template["type"],
+            "source_ip": source_ip,
+            "target_ip": target,
+            "target_port": destination_port,
+            "evidence_count": total,
+            "duration_seconds": duration_seconds,
+            "description": (
+                f"{template['description']} "
+                f"Origen remoto {source_ip}; objetivo declarado {target}; "
+                f"puerto declarado {destination_port}; "
+                f"solicitudes recibidas {total} en {duration_seconds}s."
+            )
+        }
+        storage.save(alert)
+
+    return jsonify({
+        "status": "ok",
+        "message": "Trafico remoto registrado",
+        "source_ip": source_ip,
+        "sequence": sequence,
+        "total": total,
+        "target": target,
+        "destination_port": destination_port,
+        "alert": alert
+    })
+
+
+def _request_source_ip() -> str:
+    forwarded_for = request.headers.get("X-Forwarded-For", "")
+
+    if forwarded_for:
+        return forwarded_for.split(",")[0].strip()
+
+    return request.remote_addr or "DESCONOCIDO"
+
+
+def _bounded_int(value, minimum: int, maximum: int, default: int) -> int:
+    try:
+        number = int(value)
+    except (TypeError, ValueError):
+        number = default
+
+    return max(minimum, min(number, maximum))
+
+
+def _validated_target(value) -> str:
+    target = str(value or "dashboard").strip()
+
+    if not target or target.lower() == "dashboard":
+        return "dashboard"
+
+    try:
+        return str(ipaddress.ip_address(target))
+    except ValueError as error:
+        raise ValueError("Ingresa una IP objetivo valida o deja el campo vacio.") from error

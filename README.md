@@ -4,6 +4,10 @@ Sistema basico de deteccion de intrusos para Windows, desarrollado con Python, S
 
 El proyecto captura trafico de red en tiempo real, genera alertas de seguridad y muestra los resultados en un dashboard web local.
 
+Tambien puede publicarse como dashboard web en Render para demostracion academica.
+En Render se visualiza la interfaz, simulaciones, graficos e historial; la captura real
+de red, Suricata y el bloqueo IPS deben ejecutarse en una maquina dentro de la red local.
+
 ## Funciones principales
 
 - Captura de paquetes en tiempo real con Scapy.
@@ -78,6 +82,47 @@ La carpeta `logs/` se crea durante la ejecucion, pero esta ignorada por Git para
 - Python 3.9 o superior.
 - Nmap instalado.
 - Permisos de administrador para ejecutar el IDS principal.
+
+## Despliegue web en Render
+
+El proyecto incluye `render.yaml`, `runtime.txt` y `gunicorn` para desplegar el dashboard.
+
+Configuracion principal:
+
+```text
+Build Command: pip install -r requirements.txt
+Start Command: gunicorn web.app:app --bind 0.0.0.0:$PORT
+```
+
+Guia completa:
+
+```text
+docs/DEPLOY_RENDER.md
+```
+
+## Laboratorio remoto en red local
+
+El dashboard incluye una pagina para que otro integrante conectado a la misma red
+genere eventos de laboratorio desde su propio equipo:
+
+```text
+http://<IP-DE-TU-PC>:5000/attack-lab
+```
+
+Ejemplo:
+
+```text
+http://192.168.100.10:5000/attack-lab
+```
+
+Cuando el integrante presiona un boton, el dashboard registra una alerta con la IP
+del equipo que hizo la solicitud. Para que otras PCs entren, inicia el dashboard con:
+
+```powershell
+python run_dashboard.py
+```
+
+Si Windows Firewall pregunta, permite el acceso en red privada.
 
 Nmap puede instalarse desde:
 

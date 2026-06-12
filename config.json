@@ -12,6 +12,12 @@
         "log_file": "logs/traffic.json",
         "max_records": 20
     },
+    "suricata": {
+        "enabled": true,
+        "eve_log_file": "logs/suricata/eve.json",
+        "local_rules_file": "suricata/local.rules",
+        "max_alerts": 100
+    },
     "rules": {
         "port_scan": {
             "enabled": true,
