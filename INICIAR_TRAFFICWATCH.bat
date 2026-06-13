@@ -25,6 +25,15 @@ if errorlevel 1 (
     exit /b 1
 )
 
+echo Verificando dependencias Python...
+python -m pip install -r requirements.txt
+if errorlevel 1 (
+    echo [ERROR] No se pudieron instalar las dependencias.
+    echo Ejecuta manualmente: python -m pip install -r requirements.txt
+    pause
+    exit /b 1
+)
+
 start "TrafficWatch Dashboard" /D "%PROJECT_DIR%" cmd /k python run_dashboard.py
 
 if exist "%SURICATA_EXE%" (
