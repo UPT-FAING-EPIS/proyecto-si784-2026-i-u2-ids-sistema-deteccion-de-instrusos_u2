@@ -679,6 +679,10 @@
                             <p id="networkDeviceCount">0</p>
                         </div>
                         <div class="card">
+                            <h2>Mi IP</h2>
+                            <p id="networkLocalIp">-</p>
+                        </div>
+                        <div class="card">
                             <h2>Red detectada</h2>
                             <p id="networkRange">-</p>
                         </div>
@@ -1511,6 +1515,7 @@
                 }
 
                 document.getElementById("networkDeviceCount").textContent = payload.device_count || 0;
+                document.getElementById("networkLocalIp").textContent = payload.local_ip || "-";
                 document.getElementById("networkRange").textContent = payload.network || "-";
                 document.getElementById("networkGateway").textContent = payload.gateway || "-";
                 document.getElementById("networkInterface").textContent = payload.interface || "-";

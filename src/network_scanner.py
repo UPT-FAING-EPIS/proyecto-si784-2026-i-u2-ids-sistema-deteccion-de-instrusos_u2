@@ -24,6 +24,11 @@ def scan_local_network(timeout_ms: int = 180, resolve_names: bool = True) -> dic
 
     arp_entries = _read_arp_table()
     active_ips.update(arp_entries.keys())
+    active_ips.add(network_info.ip_address)
+
+    if network_info.gateway:
+        active_ips.add(network_info.gateway)
+
     devices = []
 
     for ip_address in sorted(active_ips, key=_ip_sort_key):
