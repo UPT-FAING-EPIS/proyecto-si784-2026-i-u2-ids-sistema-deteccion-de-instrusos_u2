@@ -17,6 +17,11 @@ logs/
 .mypy_cache/
 .ruff_cache/
 
+build/
+dist/
+*.spec
+*-Windows.zip
+
 .vscode/
 
 Thumbs.db

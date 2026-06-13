@@ -6,6 +6,7 @@ import ipaddress
 import json
 from pathlib import Path
 import subprocess
+import sys
 from flask import Flask, Response, jsonify, render_template, request
 
 from src.network_scanner import scan_local_network
@@ -24,7 +25,8 @@ from src.suricata_integration import (
     read_suricata_alerts,
 )
 
-app = Flask(__name__)
+BASE_DIR = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parents[1]))
+app = Flask(__name__, template_folder=str(BASE_DIR / "web" / "templates"))
 
 LOG_FILE = Path("logs/alerts.json")
 TRAFFIC_LOG_FILE = Path("logs/traffic.json")
