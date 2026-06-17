@@ -37,6 +37,10 @@ storage = AlertStorage(str(LOG_FILE))
 traffic_storage = AlertStorage(str(TRAFFIC_LOG_FILE), max_records=20)
 policy_storage = AlertStorage(str(POLICY_FILE))
 
+SCAN_RISK_ORDER = {"BAJO": 1, "MEDIO": 2, "ALTO": 3}
+SCAN_SENSITIVE_PORTS = {21, 22, 23, 25, 53, 80, 110, 139, 143, 443, 445, 3306, 3389, 5900}
+SCAN_RARE_PORTS = {1337, 2323, 31337, 5555, 6667, 9001}
+
 SIMULATED_ALERTS = {
     "port_scan": {
         "level": "ALTO",
@@ -338,19 +342,25 @@ def api_real_nmap_scan():
         }), 400
 
     requester_ip = _request_source_ip()
+    scan_risk = _classify_nmap_scan_risk(
+        requester_ip=requester_ip,
+        target_ip=result["target"],
+        ports=result["ports"],
+    )
     storage.save({
         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "level": "MEDIO",
+        "level": scan_risk["level"],
         "category": "ESCANEO_REAL",
         "type": "ESCANEO_REAL_NMAP",
         "source_ip": requester_ip,
         "target_ip": result["target"],
         "target_port": result["ports"],
-        "evidence_count": 1,
+        "evidence_count": scan_risk["evidence_count"],
         "description": (
             f"Escaneo real solicitado desde {requester_ip} "
             f"contra {result['target']} "
-            f"en puertos {result['ports']}"
+            f"en puertos {result['ports']}. "
+            f"Riesgo {scan_risk['level']}: {scan_risk['reason']}."
         )
     })
 
@@ -501,6 +511,105 @@ def _timestamp_minute(timestamp: str) -> str:
         return ""
 
     return timestamp[:16]
+
+
+def _classify_nmap_scan_risk(requester_ip: str, target_ip: str, ports: str) -> dict:
+    scanned_ports = _expand_port_selection(ports)
+    recent_repeats = _recent_nmap_scan_count(requester_ip, target_ip)
+    reasons = []
+    level = "BAJO"
+
+    if len(scanned_ports) >= 100:
+        level = _max_scan_level(level, "MEDIO")
+        reasons.append(f"escaneo de {len(scanned_ports)} puertos")
+
+    if len(scanned_ports) >= 1000:
+        level = _max_scan_level(level, "ALTO")
+        reasons.append("rango amplio de 1000 puertos")
+
+    sensitive_hits = sorted(SCAN_SENSITIVE_PORTS.intersection(scanned_ports))
+    if sensitive_hits:
+        level = _max_scan_level(level, "MEDIO")
+        reasons.append("incluye puertos sensibles " + ",".join(str(port) for port in sensitive_hits[:6]))
+
+    rare_hits = sorted(SCAN_RARE_PORTS.intersection(scanned_ports))
+    if rare_hits:
+        level = _max_scan_level(level, "ALTO")
+        reasons.append("incluye puertos raros " + ",".join(str(port) for port in rare_hits))
+
+    if recent_repeats >= 2:
+        level = _max_scan_level(level, "ALTO")
+        reasons.append(f"{recent_repeats + 1} escaneos recientes desde la misma IP")
+
+    if not reasons:
+        reasons.append("escaneo pequeno y no repetido")
+
+    return {
+        "level": level,
+        "reason": "; ".join(reasons),
+        "evidence_count": max(1, len(scanned_ports)),
+    }
+
+
+def _max_scan_level(current: str, candidate: str) -> str:
+    return candidate if SCAN_RISK_ORDER[candidate] > SCAN_RISK_ORDER[current] else current
+
+
+def _expand_port_selection(ports: str) -> set:
+    selected_ports = set()
+
+    for part in str(ports or "").split(","):
+        clean_part = part.strip()
+
+        if not clean_part:
+            continue
+
+        if "-" in clean_part:
+            start_text, end_text = clean_part.split("-", 1)
+            try:
+                start_port = int(start_text)
+                end_port = int(end_text)
+            except ValueError:
+                continue
+
+            selected_ports.update(range(max(1, start_port), min(65535, end_port) + 1))
+            continue
+
+        try:
+            selected_ports.add(int(clean_part))
+        except ValueError:
+            continue
+
+    return selected_ports
+
+
+def _recent_nmap_scan_count(requester_ip: str, target_ip: str, window_minutes: int = 10) -> int:
+    now = datetime.now()
+    count = 0
+
+    for alert in reversed(storage.read()):
+        if alert.get("type") != "ESCANEO_REAL_NMAP":
+            continue
+
+        if alert.get("source_ip") != requester_ip or alert.get("target_ip") != target_ip:
+            continue
+
+        try:
+            alert_time = datetime.strptime(alert.get("timestamp", ""), "%Y-%m-%d %H:%M:%S")
+        except ValueError:
+            continue
+
+        age_seconds = (now - alert_time).total_seconds()
+
+        if age_seconds < 0:
+            continue
+
+        if age_seconds > window_minutes * 60:
+            break
+
+        count += 1
+
+    return count
 
 
 def _suricata_config() -> dict:
