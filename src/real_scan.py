@@ -1,4 +1,5 @@
 import ipaddress
+from pathlib import Path
 import shutil
 import subprocess
 from datetime import datetime
@@ -15,11 +16,30 @@ ALLOWED_PORT_RANGES = {
 }
 
 
-def run_local_nmap_scan(target: str = "", ports: str = DEFAULT_PORT_RANGE) -> dict:
-    nmap_path = shutil.which("nmap")
+def resolve_nmap_path() -> str:
+    nmap_path = shutil.which("nmap") or shutil.which("nmap.exe")
 
-    if not nmap_path:
-        raise RuntimeError("Nmap no esta instalado o no esta disponible en PATH.")
+    if nmap_path:
+        return nmap_path
+
+    common_paths = [
+        Path("C:/Program Files/Nmap/nmap.exe"),
+        Path("C:/Program Files (x86)/Nmap/nmap.exe"),
+    ]
+
+    for path in common_paths:
+        if path.exists():
+            return str(path)
+
+    raise RuntimeError(
+        "Nmap no esta instalado o no esta disponible. "
+        "Instalalo desde https://nmap.org/download.html#windows "
+        "o reinicia TrafficWatch despues de instalarlo."
+    )
+
+
+def run_local_nmap_scan(target: str = "", ports: str = DEFAULT_PORT_RANGE) -> dict:
+    nmap_path = resolve_nmap_path()
 
     network_info = detect_network_info()
     network = ipaddress.ip_network(network_info.network, strict=False)
