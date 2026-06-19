@@ -326,6 +326,41 @@
             line-height: 1.55;
         }
 
+        .manual-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+        }
+
+        .manual-step {
+            background: #1f2937;
+            border: 1px solid #374151;
+            border-radius: 8px;
+            padding: 16px;
+        }
+
+        .manual-step h3 {
+            color: #93c5fd;
+            font-size: 17px;
+            margin: 0 0 10px;
+        }
+
+        .manual-step ol,
+        .manual-step ul {
+            color: #d1d5db;
+            line-height: 1.55;
+            margin: 0;
+            padding-left: 20px;
+        }
+
+        .manual-note {
+            background: #111827;
+            border-left: 3px solid #f59e0b;
+            color: #fde68a;
+            margin-top: 16px;
+            padding: 14px 16px;
+        }
+
         .traffic-grid {
             display: grid;
             grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -520,7 +555,8 @@
             .traffic-grid,
             .filter-grid,
             .simulation-grid,
-            .split-grid {
+            .split-grid,
+            .manual-grid {
                 grid-template-columns: 1fr;
             }
         }
@@ -535,6 +571,7 @@
             </div>
             <nav class="nav" aria-label="Navegacion principal">
                 <button class="active" id="dashboardNav" onclick="showView('dashboard')">Dashboard</button>
+                <button id="manualNav" onclick="showView('manual')">Manual de uso</button>
                 <button id="trafficNav" onclick="showView('traffic')">Tipos de trafico</button>
                 <button id="classifiedNav" onclick="showView('classified')">Trafico clasificado</button>
                 <button id="networkNav" onclick="showView('network')">Red local</button>
@@ -598,6 +635,77 @@
                             </tr>
                         </tbody>
                     </table>
+                </main>
+            </section>
+
+            <section class="view" id="manualView">
+                <header>
+                    <h2>Manual de uso</h2>
+                    <p>Guia breve para operar TrafficWatch IDS dentro de una red autorizada.</p>
+                </header>
+
+                <main>
+                    <div class="manual-grid">
+                        <article class="manual-step">
+                            <h3>1. Iniciar el dashboard</h3>
+                            <ol>
+                                <li>Ejecuta <strong>abrir_cmd_proyecto.bat</strong>.</li>
+                                <li>Entra a <strong>http://127.0.0.1:5000</strong>.</li>
+                                <li>Mantén abierta la ventana de CMD o PowerShell mientras usas el sistema.</li>
+                            </ol>
+                        </article>
+
+                        <article class="manual-step">
+                            <h3>2. Usar desde otra PC</h3>
+                            <ol>
+                                <li>Conecta ambas computadoras a la misma red.</li>
+                                <li>Usa la IP mostrada al iniciar el dashboard, por ejemplo <strong>http://192.168.1.X:5000</strong>.</li>
+                                <li>Abre <strong>/attack-lab</strong> desde la segunda PC para hacer pruebas controladas.</li>
+                            </ol>
+                        </article>
+
+                        <article class="manual-step">
+                            <h3>3. Interpretar alertas</h3>
+                            <ul>
+                                <li><strong>ALTO:</strong> actividad que debe revisarse con prioridad.</li>
+                                <li><strong>MEDIO:</strong> patrón inusual que requiere contexto.</li>
+                                <li><strong>IP origen:</strong> equipo que generó el tráfico detectado.</li>
+                                <li><strong>Objetivo:</strong> equipo y puerto al que se dirigió el tráfico.</li>
+                            </ul>
+                        </article>
+
+                        <article class="manual-step">
+                            <h3>4. Probar el laboratorio</h3>
+                            <ol>
+                                <li>Entra a <strong>Attack Lab</strong> desde un equipo autorizado.</li>
+                                <li>Elige una prueba de tráfico controlado o un escaneo Nmap autorizado.</li>
+                                <li>Regresa al Dashboard y revisa la alerta con IP, tipo, riesgo y descripción.</li>
+                            </ol>
+                        </article>
+
+                        <article class="manual-step">
+                            <h3>5. Bloquear una IP temporalmente</h3>
+                            <ol>
+                                <li>Ejecuta el dashboard como administrador.</li>
+                                <li>Busca una alerta SSH: <strong>FUERZA_BRUTA_SSH</strong> o <strong>TRAFICO_REAL_LAB_FUERZA_BRUTA_SSH</strong>.</li>
+                                <li>Pulsa <strong>Bloquear 10 min</strong> en la columna Acción.</li>
+                                <li>Windows Firewall bloqueará conexiones entrantes de esa IP y quitará la regla al terminar el tiempo.</li>
+                            </ol>
+                        </article>
+
+                        <article class="manual-step">
+                            <h3>6. Revisar y exportar</h3>
+                            <ul>
+                                <li>Usa <strong>Historial</strong> para filtrar alertas anteriores.</li>
+                                <li>Exporta resultados en JSON o CSV para informes.</li>
+                                <li>Consulta <strong>Red local</strong> para identificar dispositivos detectados.</li>
+                            </ul>
+                        </article>
+                    </div>
+
+                    <div class="manual-note">
+                        Solo realiza pruebas sobre equipos y redes autorizadas. El bloqueo temporal protege la computadora donde TrafficWatch está ejecutándose; no expulsa dispositivos del Wi-Fi ni bloquea todo el router.
+                    </div>
                 </main>
             </section>
 
@@ -1171,6 +1279,7 @@
 
         function showView(viewName) {
             const dashboardView = document.getElementById("dashboardView");
+            const manualView = document.getElementById("manualView");
             const trafficView = document.getElementById("trafficView");
             const classifiedView = document.getElementById("classifiedView");
             const networkView = document.getElementById("networkView");
@@ -1181,6 +1290,7 @@
             const suricataView = document.getElementById("suricataView");
             const rulesView = document.getElementById("rulesView");
             const dashboardNav = document.getElementById("dashboardNav");
+            const manualNav = document.getElementById("manualNav");
             const trafficNav = document.getElementById("trafficNav");
             const classifiedNav = document.getElementById("classifiedNav");
             const networkNav = document.getElementById("networkNav");
@@ -1192,6 +1302,7 @@
             const rulesNav = document.getElementById("rulesNav");
 
             dashboardView.classList.toggle("active", viewName === "dashboard");
+            manualView.classList.toggle("active", viewName === "manual");
             trafficView.classList.toggle("active", viewName === "traffic");
             classifiedView.classList.toggle("active", viewName === "classified");
             networkView.classList.toggle("active", viewName === "network");
@@ -1202,6 +1313,7 @@
             suricataView.classList.toggle("active", viewName === "suricata");
             rulesView.classList.toggle("active", viewName === "rules");
             dashboardNav.classList.toggle("active", viewName === "dashboard");
+            manualNav.classList.toggle("active", viewName === "manual");
             trafficNav.classList.toggle("active", viewName === "traffic");
             classifiedNav.classList.toggle("active", viewName === "classified");
             networkNav.classList.toggle("active", viewName === "network");
