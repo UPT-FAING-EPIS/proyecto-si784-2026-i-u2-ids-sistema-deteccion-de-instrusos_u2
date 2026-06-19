@@ -1305,7 +1305,12 @@
         }
 
         function appendAlertAction(cell, alert) {
-            if (alert.type !== "FUERZA_BRUTA_SSH" || !alert.source_ip) {
+            const isSshAlert = [
+                "FUERZA_BRUTA_SSH",
+                "TRAFICO_REAL_LAB_FUERZA_BRUTA_SSH",
+            ].includes(alert.type);
+
+            if (!isSshAlert || !alert.source_ip) {
                 cell.textContent = "-";
                 return;
             }

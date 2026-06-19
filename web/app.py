@@ -41,6 +41,10 @@ policy_storage = AlertStorage(str(POLICY_FILE))
 SCAN_RISK_ORDER = {"BAJO": 1, "MEDIO": 2, "ALTO": 3}
 SCAN_SENSITIVE_PORTS = {21, 22, 23, 25, 53, 80, 110, 139, 143, 443, 445, 3306, 3389, 5900}
 SCAN_RARE_PORTS = {1337, 2323, 31337, 5555, 6667, 9001}
+SSH_BLOCKABLE_ALERT_TYPES = {
+    "FUERZA_BRUTA_SSH",
+    "TRAFICO_REAL_LAB_FUERZA_BRUTA_SSH",
+}
 
 SIMULATED_ALERTS = {
     "port_scan": {
@@ -655,7 +659,7 @@ def _active_response_config() -> dict:
 
 def _has_ssh_brute_force_alert(source_ip: str) -> bool:
     return any(
-        alert.get("type") == "FUERZA_BRUTA_SSH"
+        alert.get("type") in SSH_BLOCKABLE_ALERT_TYPES
         and alert.get("source_ip") == source_ip
         for alert in storage.read()
     )
@@ -679,7 +683,7 @@ def api_firewall_block_ssh_ip():
     if not _has_ssh_brute_force_alert(source_ip):
         return jsonify({
             "status": "error",
-            "message": "Solo se puede bloquear una IP que tenga una alerta FUERZA_BRUTA_SSH registrada."
+            "message": "Solo se puede bloquear una IP que tenga una alerta SSH registrada."
         }), 400
 
     response = ActiveResponse(_active_response_config()).block_ip_temporarily(
