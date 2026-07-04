@@ -30,7 +30,7 @@ jobs:
           python -m pip install -r requirements-dev.txt
 
       - name: Run mutation tests
-        run: mutmut run --paths-to-mutate src/analyzer.py,src/alert_manager.py,src/storage.py,src/response_actions.py,src/suricata_integration.py
+        run: mutmut run
 
       - name: Show mutation results
         if: always()
