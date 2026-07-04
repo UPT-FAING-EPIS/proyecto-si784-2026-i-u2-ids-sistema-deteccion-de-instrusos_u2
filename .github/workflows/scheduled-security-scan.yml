@@ -1,0 +1,87 @@
+name: Scheduled Security Scan
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "15 8 * * 2"
+
+permissions:
+  contents: read
+
+jobs:
+  python-security:
+    name: Python security scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install security tools
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install bandit pip-audit
+
+      - name: Run Bandit scan
+        continue-on-error: true
+        run: |
+          mkdir -p security-reports
+          bandit -r src web main.py run_dashboard.py trafficwatch_desktop.py \
+            -f json -o security-reports/bandit-report.json
+
+      - name: Run dependency audit
+        continue-on-error: true
+        run: |
+          mkdir -p security-reports
+          pip-audit -r requirements.txt \
+            --format json \
+            --output security-reports/pip-audit-report.json
+
+      - name: Upload security reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: scheduled-security-reports
+          path: security-reports/
+
+  ids-config-validation:
+    name: IDS configuration validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Validate JSON configuration
+        run: python -m json.tool config.json
+
+      - name: Validate Suricata local rules file
+        shell: python
+        run: |
+          from pathlib import Path
+
+          rules_path = Path("suricata/local.rules")
+          if not rules_path.exists():
+              raise SystemExit("suricata/local.rules no existe")
+
+          enabled_rules = [
+              line.strip()
+              for line in rules_path.read_text(encoding="utf-8").splitlines()
+              if line.strip() and not line.strip().startswith("#")
+          ]
+          if not enabled_rules:
+              raise SystemExit("suricata/local.rules no contiene reglas activas")
+
+          print(f"Reglas Suricata activas: {len(enabled_rules)}")
