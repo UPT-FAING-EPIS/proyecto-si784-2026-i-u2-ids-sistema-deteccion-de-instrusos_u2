@@ -29,9 +29,16 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-dev.txt
 
+      - name: Check baseline tests
+        run: python -m pytest tests -m "not integration" -x
+
       - name: Run mutation tests
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: mutmut run
 
       - name: Show mutation results
         if: always()
+        env:
+          PYTHONPATH: ${{ github.workspace }}
         run: mutmut results
