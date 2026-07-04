@@ -25,13 +25,14 @@ Integrantes:
 
 # Informe de Arquitectura de Software
 
-Version: **2.1**
+Version: **2.2**
 
 | Version | Hecha por | Revisada por | Aprobada por | Fecha | Motivo |
 |:--:|:--:|:--:|:--:|:--:|:--|
 | 1.0 | APO, ECA | APO, ECA | P. Cuadros Q. | 2026-04-25 | Version inicial |
 | 2.0 | APO, ECA | APO, ECA | P. Cuadros Q. | 2026-06-09 | Actualizacion segun implementacion final |
 | 2.1 | APO, ECA | APO, ECA | P. Cuadros Q. | 2026-07-04 | Actualizacion segun dashboard, Suricata IPS, respuesta activa y despliegue Render |
+| 2.2 | APO, ECA | APO, ECA | P. Cuadros Q. | 2026-07-04 | Revision de coherencia con informes FD01-FD05 y codigo actual |
 
 ## 1. Introduccion
 
@@ -292,4 +293,4 @@ La ejecucion local permite captura de paquetes, escaneo de red, Nmap, Suricata l
 
 ## 10. Conclusiones
 
-La arquitectura actual es adecuada para un IDS academico con ejecucion local y demostracion web. La separacion entre captura, analisis, almacenamiento, dashboard, Suricata IPS y respuesta activa permite evolucionar el sistema sin modificar todos los componentes a la vez. La solucion mantiene un alcance controlado: las funciones de captura, Nmap, Suricata real y firewall dependen del entorno local autorizado, mientras que Render se limita a visualizacion, simulaciones e historial demostrativo.
+La arquitectura actual es adecuada para un IDS academico con ejecucion local y demostracion web. La separacion entre captura, analisis, almacenamiento, dashboard, Attack Lab, Suricata IPS y respuesta activa permite evolucionar el sistema sin modificar todos los componentes a la vez. La solucion mantiene un alcance controlado: las funciones de captura, Nmap, Suricata real y firewall dependen del entorno local autorizado, mientras que Render se limita a visualizacion, simulaciones, graficos e historial demostrativo.

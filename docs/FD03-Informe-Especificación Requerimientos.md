@@ -25,12 +25,13 @@ Integrantes:
 
 # Informe de Especificacion de Requerimientos
 
-Version: **2.0**
+Version: **2.1**
 
 | Version | Hecha por | Revisada por | Aprobada por | Fecha | Motivo |
 |:--:|:--:|:--:|:--:|:--:|:--|
 | 1.0 | APO, ECA | APO, ECA | P. Cuadros Q. | 2026-04-20 | Version inicial |
 | 2.0 | APO, ECA | APO, ECA | P. Cuadros Q. | 2026-06-09 | Actualizacion segun implementacion final |
+| 2.1 | APO, ECA | APO, ECA | P. Cuadros Q. | 2026-07-04 | Actualizacion segun codigo actual, APIs Flask, Render, Suricata IPS y respuesta activa |
 
 ## 1. Introduccion
 
@@ -48,8 +49,16 @@ El sistema permite:
 - Mostrar dashboard web.
 - Exportar informacion.
 - Ejecutar pruebas guiadas.
+- Agrupar alertas como incidentes.
+- Ejecutar simulaciones locales y remotas controladas.
+- Escanear dispositivos de red local bajo limites configurables.
+- Ejecutar Nmap local con validacion de objetivo y puertos permitidos.
+- Consultar eventos Suricata EVE y generar alertas demo.
+- Generar politicas IPS y comandos de bloqueo sugeridos.
+- Aplicar bloqueo temporal manual en Windows Firewall para alertas SSH validas.
+- Publicar una demo web en Render con funciones locales limitadas o simuladas.
 
-El sistema no bloquea trafico ni reemplaza herramientas empresariales de seguridad.
+El sistema no reemplaza herramientas empresariales de seguridad ni debe ejecutar acciones ofensivas. La respuesta activa es defensiva, local, temporal y requiere autorizacion.
 
 ## 3. Requerimientos funcionales
 
@@ -74,6 +83,17 @@ El sistema no bloquea trafico ni reemplaza herramientas empresariales de segurid
 | RF-17 | Mostrar graficos de alertas. | Media | `/api/charts` |
 | RF-18 | Generar ejemplos de pruebas segun la red detectada. | Media | `src/network_utils.py` |
 | RF-19 | Automatizar arranque con scripts Windows. | Alta | Archivos `.bat` y `.ps1` |
+| RF-20 | Agrupar alertas repetidas como incidentes. | Media | `/api/incidents` |
+| RF-21 | Ejecutar simulaciones locales de ataques controlados. | Media | `/api/simulate/<attack_type>` |
+| RF-22 | Registrar eventos remotos desde Attack Lab. | Media | `/attack-lab`, `/api/remote-attack/<attack_type>` |
+| RF-23 | Registrar trafico remoto controlado desde laboratorio. | Media | `/api/remote-lab-traffic/<traffic_type>` |
+| RF-24 | Escanear dispositivos activos de la red local con limites configurables. | Media | `src/network_scanner.py`, `/api/network/devices` |
+| RF-25 | Ejecutar Nmap local validado. | Media | `src/real_scan.py`, `/api/real-scan/nmap` |
+| RF-26 | Consultar estado y alertas de Suricata EVE. | Media | `/api/suricata/status`, `/api/suricata/alerts` |
+| RF-27 | Generar evento demo Suricata. | Baja | `/api/suricata/demo-alert` |
+| RF-28 | Generar comandos y politicas IPS. | Media | `/api/ips/*`, `src/suricata_integration.py` |
+| RF-29 | Aplicar bloqueo temporal SSH bajo validacion. | Media | `/api/firewall/block-ssh-ip`, `src/response_actions.py` |
+| RF-30 | Desplegar dashboard de demostracion en Render. | Media | `render.yaml`, `runtime.txt` |
 
 ## 4. Requerimientos no funcionales
 
@@ -87,6 +107,10 @@ El sistema no bloquea trafico ni reemplaza herramientas empresariales de segurid
 | RNF-06 | Seguridad de uso | El sistema documenta que debe ejecutarse solo en redes autorizadas. |
 | RNF-07 | Compatibilidad | Enfoque principal en Windows. |
 | RNF-08 | Disponibilidad local | Dashboard disponible en `http://127.0.0.1:5000` cuando `run_dashboard.py` esta activo. |
+| RNF-09 | Compatibilidad Render | La demo web no debe depender de captura real, Nmap real, Suricata real ni Windows Firewall. |
+| RNF-10 | Seguridad operativa | Las acciones de red, firewall y escaneo deben estar limitadas a entornos autorizados. |
+| RNF-11 | Tolerancia a datos | El dashboard debe tolerar listas vacias, campos nulos y logs JSON corruptos o ausentes. |
+| RNF-12 | Escalabilidad de laboratorio | El escaneo de red debe usar limites de hosts, trabajadores, timeouts y cache. |
 
 ## 5. Reglas de negocio IDS
 
@@ -99,6 +123,10 @@ El sistema no bloquea trafico ni reemplaza herramientas empresariales de segurid
 | ALTA_FRECUENCIA_CONEXIONES | Muchas conexiones TCP desde una misma IP aunque no sean a muchos puertos. |
 | PUERTO_SOSPECHOSO | Conexion hacia puertos sensibles configurados. |
 | PUERTO_RARO | Conexion hacia puertos poco comunes configurados. |
+| ESCANEO_REAL_NMAP | Escaneo Nmap solicitado desde el dashboard y clasificado por riesgo. |
+| TRAFICO_REAL_LAB_* | Trafico controlado registrado desde Attack Lab. |
+| POLITICA_BLOQUEO_YOUTUBE | Politica IPS generada para restringir YouTube por IP. |
+| BLOQUEO_TEMPORAL_SSH | Registro de bloqueo temporal aplicado ante alerta SSH valida. |
 
 ## 6. Casos de uso
 
@@ -111,6 +139,12 @@ El sistema no bloquea trafico ni reemplaza herramientas empresariales de segurid
 | CU-05 Exportar informacion | Usuario | Descarga JSON o CSV de alertas/trafico. |
 | CU-06 Revisar estado IDS | Usuario | Entra a seccion Estado IDS. |
 | CU-07 Analizar graficos | Usuario | Entra a seccion Graficos. |
+| CU-08 Ejecutar Attack Lab | Usuario remoto autorizado | Ingresa a `/attack-lab` y genera eventos controlados. |
+| CU-09 Escanear red local | Usuario | Usa el boton de escaneo para listar dispositivos activos. |
+| CU-10 Ejecutar Nmap local | Usuario | Ingresa objetivo autorizado y rango permitido desde el dashboard. |
+| CU-11 Revisar Suricata IPS | Usuario | Consulta estado, alertas EVE y genera evento demo. |
+| CU-12 Generar politica IPS | Usuario | Genera comandos o reglas Suricata y guarda politicas. |
+| CU-13 Bloquear IP SSH | Usuario administrador | Aplica bloqueo temporal a una IP con alerta SSH registrada. |
 
 ## 7. Interfaces
 
@@ -125,15 +159,36 @@ Secciones implementadas:
 - Graficos.
 - Historial.
 - Reglas IDS.
+- Escaneo de red.
+- Suricata IPS.
+- Politicas IPS.
+- Attack Lab.
 
 ### 7.2 API local Flask
 
 | Ruta | Funcion |
 |---|---|
 | `/api/alerts` | Lista alertas. |
+| `/api/incidents` | Lista incidentes agrupados desde alertas repetidas. |
 | `/api/traffic` | Lista trafico clasificado. |
 | `/api/status` | Devuelve estado del IDS. |
 | `/api/charts` | Devuelve datos para graficos. |
+| `/api/stats` | Devuelve resumen estadistico de alertas. |
+| `/api/network/devices` | Ejecuta o devuelve escaneo controlado de red local. |
+| `/api/real-scan/nmap` | Ejecuta Nmap local validado. |
+| `/api/suricata/status` | Devuelve estado de EVE JSON y reglas Suricata. |
+| `/api/suricata/alerts` | Devuelve alertas normalizadas desde Suricata EVE. |
+| `/api/suricata/demo-alert` | Genera evento EVE de demostracion. |
+| `/api/ips/block-command` | Genera comandos de bloqueo para firewall/Suricata. |
+| `/api/ips/inline-plan` | Genera plan de laboratorio IPS inline. |
+| `/api/ips/youtube-policy` | Devuelve politica sugerida para YouTube. |
+| `/api/ips/youtube-block-command` | Genera reglas Suricata para YouTube por IP. |
+| `/api/ips/youtube-policy/save` | Guarda politica IPS generada. |
+| `/api/ips/policies` | Lista politicas IPS guardadas. |
+| `/api/firewall/block-ssh-ip` | Aplica bloqueo temporal SSH si existe alerta valida. |
+| `/api/simulate/<attack_type>` | Genera alerta local simulada. |
+| `/api/remote-attack/<attack_type>` | Registra ataque remoto simulado. |
+| `/api/remote-lab-traffic/<traffic_type>` | Registra trafico remoto controlado. |
 | `/api/clear` | Borra historial de alertas. |
 | `/api/export/alerts.json` | Exporta alertas JSON. |
 | `/api/export/alerts.csv` | Exporta alertas CSV. |
@@ -149,7 +204,14 @@ Secciones implementadas:
 - El historial permite filtrar, paginar y borrar alertas.
 - Los graficos se actualizan con el historial.
 - Los archivos JSON/CSV se descargan correctamente.
+- `/attack-lab` registra eventos remotos controlados y muestra la IP origen.
+- El escaneo de red local respeta limites de `config.json`.
+- Nmap local rechaza objetivos fuera de la red detectada y rangos no permitidos.
+- La vista Suricata funciona con archivo EVE ausente o presente.
+- Las politicas IPS se generan y guardan sin aplicar cambios reales automaticamente.
+- El bloqueo SSH solo procede si existe una alerta SSH para la IP indicada.
+- Render muestra la demo sin depender de Nmap, Suricata real, Scapy o Windows Firewall.
 
 ## 9. Conclusiones
 
-Los requerimientos actuales reflejan una version funcional del IDS academico. El proyecto evoluciono desde una captura basica con alertas hacia una herramienta con dashboard completo, reglas ampliadas, estado operativo, clasificacion de trafico, graficos, exportaciones y automatizacion para Windows.
+Los requerimientos actuales reflejan una version funcional del IDS academico. El proyecto evoluciono desde una captura basica con alertas hacia una herramienta con dashboard completo, reglas ampliadas, estado operativo, clasificacion de trafico, incidentes, graficos, exportaciones, Attack Lab, Suricata IPS, politicas de respuesta, despliegue Render y automatizacion para Windows.
