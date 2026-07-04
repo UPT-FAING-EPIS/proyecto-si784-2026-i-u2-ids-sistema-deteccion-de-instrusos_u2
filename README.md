@@ -215,12 +215,19 @@ El instalador agrega una opcion llamada `Instalar dependencias opcionales` para 
 ## Despliegue web en Render
 
 El proyecto incluye `render.yaml`, `runtime.txt` y `gunicorn` para desplegar el dashboard.
+Tambien incluye el workflow `.github/workflows/release-deploy.yml` para versionar con tags/releases y desplegar hacia Render mediante un Deploy Hook.
 
 Configuracion principal:
 
 ```text
 Build Command: pip install -r requirements.txt
 Start Command: gunicorn web.app:app --bind 0.0.0.0:$PORT
+```
+
+Para el despliegue automatico desde GitHub Actions se debe configurar el secreto:
+
+```text
+RENDER_DEPLOY_HOOK_URL
 ```
 
 Guia completa:

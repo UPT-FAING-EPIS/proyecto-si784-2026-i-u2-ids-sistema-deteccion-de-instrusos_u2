@@ -1,0 +1,82 @@
+name: Version and Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish, for example 1.0.1"
+        required: true
+        type: string
+      deploy_render:
+        description: "Trigger Render deploy after publishing the release"
+        required: true
+        default: true
+        type: boolean
+  push:
+    branches: [main]
+    paths:
+      - "src/**"
+      - "web/**"
+      - "main.py"
+      - "run_dashboard.py"
+      - "requirements.txt"
+      - "render.yaml"
+      - ".github/workflows/release-deploy.yml"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create GitHub release
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version
+        run: |
+          if ! echo "${{ inputs.version }}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "Version must use semantic format, for example 1.0.1"
+            exit 1
+          fi
+
+      - name: Create tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "v${{ inputs.version }}" -m "TrafficWatch IDS v${{ inputs.version }}"
+          git push origin "v${{ inputs.version }}"
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: "v${{ inputs.version }}"
+          name: "TrafficWatch IDS v${{ inputs.version }}"
+          body: |
+            Version academica de TrafficWatch IDS.
+
+            Incluye dashboard Flask, reglas IDS, pruebas automatizadas y configuracion de despliegue en Render.
+
+  deploy:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    needs: [release]
+    if: always() && (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.deploy_render))
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+
+    steps:
+      - name: Skip when Render hook is missing
+        if: env.RENDER_DEPLOY_HOOK_URL == ''
+        run: echo "RENDER_DEPLOY_HOOK_URL no configurado. Se omite el despliegue en Render."
+
+      - name: Trigger Render deploy
+        if: env.RENDER_DEPLOY_HOOK_URL != ''
+        run: |
+          curl --fail --request POST "$RENDER_DEPLOY_HOOK_URL"
+          echo "Deploy hook enviado a Render."
