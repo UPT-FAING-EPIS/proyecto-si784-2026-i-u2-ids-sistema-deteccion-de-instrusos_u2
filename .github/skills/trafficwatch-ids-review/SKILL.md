@@ -1,94 +1,188 @@
 ---
 name: trafficwatch-ids-review
-description: Skill específica para revisar e implementar cambios en TrafficWatch IDS, un proyecto de detección de intrusos con Python y Flask. Úsala cuando se solicite revisar, modificar, probar, documentar, empaquetar o solucionar problemas de este repositorio, incluyendo reglas del analizador, almacenamiento de alertas, respuesta activa, utilidades de red, APIs del dashboard Flask, integración con Suricata, scripts de Windows, despliegue en Render, pruebas y documentación académica.
+description: Skill especifica para revisar, implementar, probar y documentar TrafficWatch IDS, un sistema academico de deteccion de intrusos con Python, Flask, Scapy, dashboard web, respuesta activa controlada, Suricata/IPS, scripts de Windows y despliegue demo en Render. Usala para cambios en reglas IDS, alertas, trafico clasificado, dashboard, red local, bloqueo temporal, APIs Flask, pruebas, empaquetado, documentacion o compatibilidad Render/local.
 ---
 
-# Revisión de TrafficWatch IDS
+# Revision de TrafficWatch IDS
 
-## Propósito
+## Proposito
 
-Usa esta skill para trabajar dentro del repositorio TrafficWatch IDS teniendo en cuenta sus restricciones de seguridad, red, dashboard, empaquetado para Windows y demostración académica.
+Usa esta skill para trabajar dentro del repositorio TrafficWatch IDS con contexto de seguridad, red local, dashboard, despliegue academico y compatibilidad Windows/Render.
+
+La prioridad es mantener el sistema util para laboratorio, demostrable en Render y seguro para pruebas controladas. No conviertas funciones de simulacion o defensa en acciones ofensivas ni automatices acciones de red sin autorizacion explicita del usuario.
+
+## Cuando Usarla
+
+Activa esta skill cuando la solicitud mencione o afecte:
+
+- Reglas de deteccion IDS, clasificacion de trafico, falsos positivos o umbrales.
+- Alertas, incidentes, historial, exportacion CSV/JSON o agregacion del dashboard.
+- Botones del dashboard, JavaScript, estilos, navegacion o consumo de APIs.
+- Bloqueo temporal de IP, Firewall de Windows, respuesta activa o modo prueba.
+- Red local, escaneo de equipos, laboratorio de 100 equipos, Nmap, Scapy o Suricata.
+- Ejecucion local en Windows, empaquetado, instaladores o scripts `.bat`/`.ps1`.
+- Despliegue en Render, variables de entorno o limitaciones de hosting.
+- Pruebas automatizadas, documentacion academica, README o informes.
 
 ## Primer Paso
 
 1. Lee `README.md`, `config.json` y los archivos directamente relacionados con la solicitud.
-2. Revisa las pruebas existentes en `tests/` antes de cambiar la detección, el almacenamiento, la respuesta activa o el comportamiento del dashboard.
-3. Conserva la separación actual entre la ejecución local del IDS y la ejecución de demostración en Render.
-4. Trata `logs/` como datos de ejecución. No dependas de contenidos de logs versionados.
+2. Revisa `tests/` antes de modificar deteccion, almacenamiento, respuesta activa, APIs o dashboard.
+3. Verifica si el cambio aplica a ejecucion local, demo Render o ambos.
+4. Trata `logs/` como datos de ejecucion. No dependas de logs reales versionados ni los conviertas en fixtures.
+5. Antes de tocar red, firewall, instaladores o capturas reales, confirma que el usuario lo pidio explicitamente.
 
 ## Mapa Del Proyecto
 
-- `main.py`: punto de entrada local del IDS. Carga la configuración, detecta información de red, inicia la captura y actualiza el estado.
-- `src/packet_capture.py`: captura de paquetes con Scapy para la ejecución local del IDS.
-- `src/analyzer.py`: clasificación de paquetes y reglas IDS para escaneo de puertos, ICMP flood, SYN flood, fuerza bruta, frecuencia de conexiones, puertos sospechosos y puertos raros.
-- `src/alert_manager.py`: creación de alertas, cooldown, categorías y metadatos opcionales de respuesta activa.
-- `src/storage.py`: persistencia JSON con límite de registros y lectura tolerante a corrupción.
-- `src/network_utils.py`: detección de red en Windows y ejemplos de comandos.
-- `src/status_manager.py`: estado operativo del IDS, interfaz usada, red detectada y último latido.
-- `src/network_scanner.py`: escaneo controlado de dispositivos activos de la red local.
-- `src/real_scan.py`: ejecución validada de Nmap local con rangos de puertos permitidos.
-- `src/response_actions.py`: respuesta activa con Firewall de Windows. Mantén el bloqueo automático de forma conservadora.
-- `src/suricata_integration.py`: estado de Suricata, alertas de demostración, reglas locales, planes IPS y constructores de comandos de firewall.
+- `main.py`: arranque local del IDS. Carga configuracion, detecta red, inicia captura y actualiza estado.
+- `src/packet_capture.py`: captura de paquetes con Scapy para la ejecucion local del IDS.
+- `src/analyzer.py`: reglas IDS para escaneo de puertos, ICMP flood, SYN flood, fuerza bruta, alta frecuencia, puertos sospechosos y puertos raros.
+- `src/alert_manager.py`: creacion de alertas, cooldown, categorias, persistencia y metadatos de respuesta.
+- `src/storage.py`: lectura/escritura JSON con limite de registros y tolerancia a corrupcion.
+- `src/network_utils.py`: deteccion de red en Windows y comandos sugeridos.
+- `src/status_manager.py`: estado operativo del IDS, interfaz usada, red detectada y ultimo latido.
+- `src/network_scanner.py`: escaneo controlado de red local para inventario del dashboard.
+- `src/real_scan.py`: validacion de objetivos y ejecucion controlada de escaneos Nmap locales.
+- `src/response_actions.py`: respuesta activa con Firewall de Windows y bloqueo temporal conservador.
+- `src/suricata_integration.py`: estado de Suricata, eventos EVE, reglas, planes IPS y comandos sugeridos.
 - `run_dashboard.py`: arranque local del dashboard Flask.
-- `web/app.py`: rutas Flask, endpoints API, agregación del dashboard, exportaciones, simulación, escaneos y políticas.
-- `web/templates/dashboard.html`: interfaz principal del dashboard.
-- `web/templates/attack_lab.html`: interfaz controlada del laboratorio de ataques.
+- `web/app.py`: rutas Flask, APIs, simulacion, incidentes, exportaciones, red local, Suricata, IPS y Render.
+- `web/templates/dashboard.html`: dashboard principal, navegacion, tablas, botones y consumo de APIs.
+- `web/templates/attack_lab.html`: laboratorio controlado para simulaciones.
 - `suricata/local.rules`: reglas locales de Suricata.
-- `config.json`: umbrales, rutas de logs, ventana del dashboard, límites de escaneo de red, Suricata y configuración de respuesta activa.
-- `docs/`: documentación académica, arquitectura, requerimientos, despliegue Render y guía Suricata IPS.
-- `tests/`: cobertura enfocada con pytest para clasificación del analizador, almacenamiento, alertas, utilidades de red y respuesta activa.
-- Scripts de Windows: configuración, lanzador, empaquetado, instalador y ayudantes de administrador.
-- `render.yaml` y `runtime.txt`: despliegue de demostración en Render.
+- `config.json`: umbrales, rutas de logs, ventana de incidentes, limites de red, Suricata y respuesta activa.
+- `docs/`: documentacion academica, arquitectura, requerimientos, despliegue Render y guia Suricata IPS.
+- `tests/`: pruebas de analizador, alertas, almacenamiento, red, APIs y respuesta activa.
+- Scripts Windows: `INICIAR_TRAFFICWATCH.bat`, `setup_windows.ps1`, instalador, empaquetado y ayudantes de administrador.
+- `render.yaml` y `runtime.txt`: despliegue de demostracion en Render.
 
 ## Reglas De Trabajo
 
-- Prefiere cambios pequeños y enfocados que mantengan el estilo actual de Python simple.
-- Mantén los umbrales de detección configurables en `config.json` en vez de fijar constantes de seguridad directamente en el código.
-- Agrega o actualiza pruebas cuando cambies tipos de alerta, comportamiento de reglas, formatos de almacenamiento, respuestas de APIs Flask o generación de comandos de respuesta activa.
-- Mantén las funciones solo locales con alternativas seguras para Render. Render puede mostrar el dashboard, simulaciones, historial y gráficos, pero no puede capturar paquetes locales, ejecutar Nmap/Suricata reales ni modificar el Firewall de Windows.
-- Evita escaneos reales de red, captura de paquetes, ejecución de Suricata, cambios de firewall, instaladores o scripts de administrador salvo que el usuario lo pida explícitamente.
-- Usa `app.test_client()` de Flask para revisar endpoints cuando no sea necesario abrir un navegador o iniciar un servidor completo.
-- Conserva las etiquetas en español ya presentes en el dashboard y la documentación.
-- Para cambios en `docs/`, conserva el tono académico, la estructura FD01-FD06 y la coherencia con README, Render y las funciones reales del sistema.
-- No hagas commits ni crees fixtures a partir de `logs/alerts.json`, `logs/traffic.json`, `logs/status.json`, `logs/policies.json` o `logs/suricata/eve.json` reales.
+- Prefiere cambios pequenos, claros y enfocados.
+- Manten umbrales y limites configurables en `config.json`; evita constantes rigidas de seguridad.
+- Conserva nombres de alerta consistentes entre analizador, simulador, dashboard, respuesta activa, Suricata y pruebas.
+- Agrega o actualiza pruebas cuando cambies reglas IDS, formatos de alerta, respuesta activa, APIs o comportamiento del dashboard.
+- Manten separacion estricta:
+  - Local Windows: captura real, Scapy, firewall, Suricata, Nmap y escaneo de red.
+  - Render: dashboard, simulaciones, historial, graficos y demostraciones seguras.
+- No ejecutes escaneos reales, captura de paquetes, Suricata, Nmap, cambios de firewall, instaladores o scripts de administrador salvo solicitud explicita.
+- Si una funcion puede bloquear una IP, debe ser manual, visible para el usuario, temporal, reversible y validada.
+- Para laboratorios grandes, evita una fila por paquete cuando sea mejor agrupar por incidente, IP, tipo, puerto y ventana temporal.
+- Conserva textos en espanol del dashboard y documentacion, salvo que la tarea pida traduccion.
+- Para cambios en `docs/`, conserva el tono academico, la estructura FD01-FD06 y la coherencia con README, Render y las funciones reales del sistema.
+- No agregues al commit archivos generados, `dist/`, `build/`, `__pycache__/`, logs reales, capturas locales ni rutas especificas de una maquina.
+
+## Seguridad Y Alcance Permitido
+
+Este proyecto es defensivo y academico. Es correcto ayudar con:
+
+- Simulaciones controladas dentro de laboratorio autorizado.
+- Deteccion, visualizacion, clasificacion y explicacion de eventos.
+- Bloqueo temporal defensivo desde el equipo donde corre el IDS.
+- Mejoras de escalabilidad para redes locales autorizadas.
+- Validaciones que eviten acciones peligrosas por accidente.
+
+Evita:
+
+- Instrucciones para atacar terceros o evadir defensas.
+- Automatizar bloqueos masivos sin confirmacion.
+- Ejecutar comandos que cambien firewall/red sin autorizacion explicita.
+- Convertir pruebas de laboratorio en herramientas ofensivas reutilizables contra redes externas.
+
+## Flujo Recomendado Por Tipo De Tarea
+
+### Cambios En Deteccion
+
+1. Revisa `src/analyzer.py`, `config.json` y pruebas relacionadas.
+2. Verifica que el tipo de alerta exista o se refleje en dashboard/simulador/exportaciones.
+3. Cuida cooldown y agrupacion para no generar ruido excesivo.
+4. Prueba con casos pequenos y deterministas.
+
+### Cambios En Dashboard
+
+1. Revisa `web/templates/dashboard.html` y los endpoints usados en `web/app.py`.
+2. Asegura que el JavaScript soporte campos faltantes o respuestas vacias.
+3. Manten actualizacion automatica sin duplicar filas innecesariamente.
+4. Verifica renderizado con `app.test_client()` cuando baste.
+
+### Cambios En Respuesta Activa
+
+1. Revisa `src/response_actions.py`, `web/app.py`, `config.json` y pruebas.
+2. Manten duracion configurable y por defecto conservadora para laboratorio.
+3. Valida IPs, evita rangos peligrosos y registra la accion de forma comprensible.
+4. No ejecutes firewall real si solo necesitas probar construccion de comandos.
+
+### Cambios En Red Local
+
+1. Limita el alcance a la red local detectada o configurada.
+2. Usa timeouts, cache y limite de hosts/trabajadores.
+3. Para laboratorios de hasta 100 equipos, prioriza escaneo acotado, resultados cacheados y reintentos controlados.
+4. No dependas de nombres DNS/reverse lookup para que el dashboard funcione.
+
+### Cambios En Render
+
+1. Recuerda que Render no puede capturar trafico real ni modificar firewall local.
+2. Usa variables de entorno y rutas portables.
+3. Evita depender de Windows, Npcap, Suricata local o permisos de administrador.
+4. Manten simulaciones y vistas demo funcionales.
 
 ## No Hacer
 
-- No ejecutes capturas reales, escaneos Nmap, Suricata real, cambios de firewall, instaladores o scripts de administrador sin pedido explícito del usuario.
+- No ejecutes capturas reales, escaneos Nmap, Suricata real, cambios de firewall, instaladores o scripts de administrador sin pedido explicito del usuario.
 - No uses logs reales como fixtures, datos fuente o evidencia estable.
 - No rompas la compatibilidad con Render al agregar funciones que dependan de Windows, red local, permisos de administrador, Nmap, Npcap o Suricata.
 
-## Validación
+## Validacion
 
-Usa la validación más específica que corresponda al cambio:
+Usa la validacion mas especifica posible:
 
 ```powershell
 python -m json.tool config.json
+python -m compileall src web
 python -m pytest
+```
+
+Pruebas enfocadas utiles:
+
+```powershell
 python -m pytest tests/test_traffic_classification.py
 python -m pytest tests/test_alert_manager.py
 python -m pytest tests/test_response_actions.py
 python -m pytest tests/test_network_utils.py
 python -m pytest tests/test_storage.py
-python -m compileall src web
 ```
 
-Para cambios solo del dashboard, prefiere una prueba rápida con Flask:
+Prueba rapida para dashboard/API:
 
 ```powershell
 python -c "from web.app import app; c=app.test_client(); assert c.get('/').status_code == 200; assert c.get('/api/status').status_code == 200; print('OK')"
 ```
 
-Para cambios de empaquetado, inspecciona el `.bat`, `.ps1`, `installer/TrafficWatchIDS.iss` o la ruta del comando de PyInstaller afectada antes de ejecutarlo. Construir instaladores puede descargar dependencias o requerir herramientas de administrador, así que pregunta antes de ejecutar esos flujos.
+Si `pytest` no esta instalado, informa el bloqueo y ejecuta al menos:
 
-## Lista De Revisión
+```powershell
+python -m json.tool config.json
+python -m compileall src web
+```
 
-Al revisar un cambio, busca primero:
+## Checklist De Revision
 
-- Reglas que puedan generar alertas duplicadas o ruidosas porque cambiaron las claves de cooldown.
-- Registros de alerta que rompan la agregación del dashboard o la exportación CSV/JSON.
-- Nombres de tipos de alerta inconsistentes entre analizador, simulador, respuesta activa, dashboard y ayudantes de Suricata.
-- Acciones de bloqueo o escaneo que podrían ejecutarse automáticamente en vez de mantenerse como recomendadas/manuales.
-- Pruebas que escriban fuera de `tmp_path` o dependan del estado real de red de la máquina local.
-- JavaScript del dashboard que asuma que un campo de API siempre existe.
-- Rutas de Render que asuman que existen herramientas exclusivas de Windows.
+Antes de terminar, revisa:
+
+- El cambio rompe `config.json` o introduce claves no documentadas?
+- Los tipos de alerta siguen coincidiendo entre backend, frontend, simulador y pruebas?
+- El dashboard tolera listas vacias, campos nulos y errores de API?
+- La agrupacion de incidentes evita ruido sin ocultar eventos importantes?
+- La respuesta activa sigue siendo manual, temporal y reversible?
+- Render sigue funcionando aunque no existan herramientas locales de red?
+- Las pruebas no dependen de red real, logs reales ni permisos de administrador?
+- No se agregaron archivos generados o datos locales al commit?
+
+## Respuesta Al Usuario
+
+Al finalizar una tarea, explica en espanol:
+
+- Que se reviso o cambio.
+- Que validacion se ejecuto y su resultado.
+- Si aplica, que queda pendiente para probar en Windows, red local o Render.
+- Si hubo una decision de seguridad, explicala de forma simple y practica.
