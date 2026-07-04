@@ -56,6 +56,7 @@ def test_attack_lab_renders_remote_lab_buttons(live_dashboard):
         page.goto(f"{live_dashboard}/attack-lab", wait_until="networkidle")
 
         expect(page.locator("h1")).to_contain_text("TrafficWatch Lab")
-        expect(page.locator("button").first).to_contain_text("Enviar")
+        expect(page.get_by_role("button", name="Escanear IP")).to_be_visible()
+        expect(page.get_by_role("button", name="Enviar").first).to_be_visible()
 
         browser.close()

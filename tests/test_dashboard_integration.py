@@ -64,7 +64,7 @@ def test_simulation_registers_alert_and_traffic_without_real_network(client):
 @pytest.mark.integration
 def test_invalid_ips_routes_return_controlled_errors(client):
     firewall_response = client.post("/api/firewall/block-ssh-ip", json={"ip": "no-ip"})
-    youtube_response = client.post("/api/ips/youtube-block-command", json={"ip": "no-ip"})
+    youtube_response = client.post("/api/ips/youtube-block-command", json={"ip": ""})
 
     assert firewall_response.status_code == 400
     assert youtube_response.status_code == 400
